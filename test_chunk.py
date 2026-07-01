@@ -1,99 +1,150 @@
 """
-Biomind — Etapa 1 do pipeline: ingestão + chunking dos PDFs.
+Biomind — Etapa 1: ingestão + chunking dos PDFs (v3).
 
-O que ele faz:
-  1. Lê todos os PDFs da pasta ./pdfs
-  2. Extrai o texto página por página
-  3. Quebra cada página em chunks, guardando metadados (arquivo + página)
-  4. Salva tudo em chunks.jsonl
-  5. Mostra uma prévia pra você OLHAR os chunks e ajustar o tamanho
+Novidades da v3:
+  - Remove automaticamente linhas que se repetem em várias páginas/documentos
+    (cabeçalhos, rodapés, avisos de copyright) — sem precisar cadastrar cada uma.
+  - Ainda dá pra cadastrar trechos específicos em BOILERPLATE_PATTERNS.
+  - Continua empacotando por frases inteiras (não corta no meio).
 
 Rodar:  python 01_chunk.py
 """
 
 import os
+import re
 import glob
 import json
 import fitz  # PyMuPDF
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from collections import Counter
 
-# ---- knobs que você ajusta olhando o resultado ----
 PDF_DIR = "pdfs"
 OUT_FILE = "chunks.jsonl"
-# Medimos em CARACTERES (não tokens) de propósito: é 100% offline, sem baixar
-# nada. Regra de bolso: ~1 token ≈ 4 caracteres. Então 1500 caracteres ≈ ~375
-# tokens. Se quiser chunks maiores (~800 tokens), use ~3200. Ajuste olhando a prévia.
-CHUNK_SIZE = 1500     # tamanho-alvo de cada chunk, em caracteres
-CHUNK_OVERLAP = 200   # quanto cada chunk repete do anterior (não perder contexto na borda)
+MAX_CHARS = 1800        # tamanho-alvo do chunk (caracteres)
+OVERLAP_CHARS = 250     # continuidade entre chunks
+REPETICAO_MIN = 3       # linha que aparece em >= N páginas do corpus = cabeçalho/rodapé
+MIN_LEN_LIXO = 15       # ignora linhas curtíssimas na detecção (números de página etc.)
 
-# RecursiveCharacterTextSplitter tenta cortar primeiro em parágrafo,
-# depois linha, depois frase, depois palavra — assim o corte cai num
-# ponto natural em vez de no meio de uma palavra.
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=CHUNK_SIZE,
-    chunk_overlap=CHUNK_OVERLAP,
-    separators=["\n\n", "\n", ". ", " ", ""],
-)
+# Trechos específicos pra remover (regex). A detecção automática já pega a maioria;
+# use isto só pra casos que escaparem.
+BOILERPLATE_PATTERNS = [
+    r"Esse material é rastreável.*?Código Penal Brasileiro\.",
+    r"Copyright.{0,4}Lippincott Williams & Wilkins.*?prohibited\.?",
+]
 
 
-def carregar_chunks():
-    chunks = []
-    paginas_sem_texto = []  # provavelmente escaneadas -> precisam de OCR
+def remover_boilerplate(texto: str) -> str:
+    for pat in BOILERPLATE_PATTERNS:
+        texto = re.sub(pat, " ", texto, flags=re.S | re.I)
+    return texto
 
-    pdfs = sorted(glob.glob(os.path.join(PDF_DIR, "*.pdf")))
-    if not pdfs:
-        print(f"Nenhum PDF encontrado em ./{PDF_DIR}/ — coloque os arquivos lá e rode de novo.")
-        return chunks, paginas_sem_texto, 0
 
-    for caminho in pdfs:
-        nome = os.path.basename(caminho)
-        doc = fitz.open(caminho)
-        for n_pagina, pagina in enumerate(doc, start=1):
-            texto = pagina.get_text("text").strip()
-            if not texto:
-                paginas_sem_texto.append((nome, n_pagina))
-                continue
-            for pedaco in splitter.split_text(texto):
-                chunks.append({
-                    "text": pedaco,
-                    "source": nome,
-                    "page": n_pagina,
-                })
-        doc.close()
+def _linhas_norm(texto: str):
+    return [l.strip() for l in texto.split("\n") if l.strip()]
 
-    return chunks, paginas_sem_texto, len(pdfs)
+
+def detectar_linhas_repetidas(paginas_por_pdf) -> set:
+    freq = Counter()
+    for paginas in paginas_por_pdf.values():
+        for txt in paginas:
+            for l in set(_linhas_norm(txt)):   # conta 1x por página
+                freq[l] += 1
+    return {l for l, c in freq.items() if c >= REPETICAO_MIN and len(l) >= MIN_LEN_LIXO}
+
+
+def remover_linhas(texto: str, lixo: set) -> str:
+    if not lixo:
+        return texto
+    return "\n".join(l for l in texto.split("\n") if l.strip() not in lixo)
+
+
+def limpar_texto(texto: str) -> str:
+    texto = remover_boilerplate(texto)
+    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)        # junta hífen quebrado
+    texto = re.sub(r"\n[ \t]*\n", "\uE000", texto)        # protege parágrafos
+    texto = texto.replace("\n", " ")                      # quebra de largura -> espaço
+    texto = texto.replace("\uE000", "\n\n")               # restaura parágrafos
+    texto = re.sub(r"[ \t]{2,}", " ", texto)
+    return texto.strip()
+
+
+def em_frases(paragrafo: str):
+    partes = re.split(r"(?<=[.!?])\s+", paragrafo.strip())
+    return [p.strip() for p in partes if p.strip()]
+
+
+def empacotar(frases, max_chars, overlap_chars):
+    chunks, atual, tam = [], [], 0
+    for f in frases:
+        if tam + len(f) + 1 > max_chars and atual:
+            chunks.append(" ".join(atual))
+            back, b = [], 0
+            for s in reversed(atual):
+                if b + len(s) > overlap_chars:
+                    break
+                back.insert(0, s)
+                b += len(s) + 1
+            atual, tam = list(back), sum(len(x) + 1 for x in back)
+        atual.append(f)
+        tam += len(f) + 1
+    if atual:
+        chunks.append(" ".join(atual))
+    return chunks
+
+
+def chunks_da_pagina(bruto: str, lixo=frozenset()):
+    texto = remover_linhas(bruto, lixo)
+    texto = limpar_texto(texto)
+    frases = []
+    for par in texto.split("\n\n"):
+        frases.extend(em_frases(par))
+    return empacotar(frases, MAX_CHARS, OVERLAP_CHARS)
 
 
 def main():
-    chunks, sem_texto, n_pdfs = carregar_chunks()
-    if not chunks:
+    pdfs = sorted(glob.glob(os.path.join(PDF_DIR, "*.pdf")))
+    if not pdfs:
+        print(f"Nenhum PDF em ./{PDF_DIR}/ — coloque os arquivos lá e rode de novo.")
         return
+
+    # Passo 1: extrai todas as páginas e detecta cabeçalhos/rodapés repetidos
+    paginas_por_pdf = {}
+    for caminho in pdfs:
+        doc = fitz.open(caminho)
+        paginas_por_pdf[caminho] = [pg.get_text("text") for pg in doc]
+        doc.close()
+    lixo = detectar_linhas_repetidas(paginas_por_pdf)
+
+    # Passo 2: monta os chunks já sem o lixo repetido
+    chunks, sem_texto = [], []
+    for caminho in pdfs:
+        nome = os.path.basename(caminho)
+        for n_pagina, bruto in enumerate(paginas_por_pdf[caminho], start=1):
+            if not bruto.strip():
+                sem_texto.append((nome, n_pagina))
+                continue
+            for pedaco in chunks_da_pagina(bruto, lixo):
+                chunks.append({"text": pedaco, "source": nome, "page": n_pagina})
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:
         for c in chunks:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
 
-    print(f"\n{len(chunks)} chunks gerados de {n_pdfs} PDF(s) -> {OUT_FILE}")
+    print(f"\n{len(chunks)} chunks gerados de {len(pdfs)} PDF(s) -> {OUT_FILE}")
+
+    if lixo:
+        print(f"\n{len(lixo)} linha(s) repetidas removidas automaticamente (cabeçalho/rodapé). Exemplos:")
+        for l in list(lixo)[:5]:
+            print("   -", (l[:80] + "…") if len(l) > 80 else l)
 
     if sem_texto:
-        print(f"\n  Atenção: {len(sem_texto)} página(s) sem texto extraível "
-              f"(provavelmente escaneadas — vão precisar de OCR):")
-        for nome, pag in sem_texto[:10]:
-            print(f"   - {nome}, página {pag}")
+        print(f"\n  Atenção: {len(sem_texto)} página(s) sem texto (provável scan -> OCR).")
 
-    # Prévia: olhe estes chunks. Estão completos? Cortam no meio de uma ideia?
-    print("\n--- prévia dos primeiros chunks (é isso que a busca vai enxergar) ---")
-    for i, c in enumerate(chunks[:3]):
-        preview = c["text"].replace("\n", " ")
-        if len(preview) > 280:
-            preview = preview[:280] + "…"
-        print(f"\n[chunk {i}]  ({c['source']}, pág. {c['page']})")
-        print(preview)
-
-    # Estatística simples pra calibrar o tamanho
-    tamanhos = [len(c["text"]) for c in chunks]
-    print(f"\nTamanho dos chunks (caracteres): "
-          f"menor={min(tamanhos)}, média={sum(tamanhos)//len(tamanhos)}, maior={max(tamanhos)}")
+    if chunks:
+        print("\n--- prévia ---")
+        for i, c in enumerate(chunks[:2]):
+            prev = c["text"]
+            print(f"\n[chunk {i}] ({c['source']}, pág. {c['page']})\n{prev[:300]}"
+                  + ("…" if len(prev) > 300 else ""))
 
 
 if __name__ == "__main__":

@@ -1,2 +1,4 @@
 pymupdf
-langchain-text-splitters
+#langchain-text-splitters
+sentence-transformers
+chromadb
