@@ -1,4 +1,10 @@
+# etapa 1
 pymupdf
 #langchain-text-splitters
+
+# etapa 2
 sentence-transformers
 chromadb
+
+# etapa 3
+requests
