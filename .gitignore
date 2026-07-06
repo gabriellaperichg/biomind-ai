@@ -1,0 +1,5 @@
+/biomind_db/
+chunks.jsonl
+pdfs/
+__pycache__/
+.venv/

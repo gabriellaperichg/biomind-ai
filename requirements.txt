@@ -8,3 +8,5 @@ chromadb
 
 # etapa 3
 requests
+fastapi
+uvicorn
