@@ -24,12 +24,37 @@ OVERLAP_CHARS = 250     # continuidade entre chunks
 REPETICAO_MIN = 3       # linha que aparece em >= N páginas do corpus = cabeçalho/rodapé
 MIN_LEN_LIXO = 15       # ignora linhas curtíssimas na detecção (números de página etc.)
 
-# Trechos específicos pra remover (regex). A detecção automática já pega a maioria;
-# use isto só pra casos que escaparem.
+# ---------------------------------------------------------------------------
+# PULAR PÁGINAS INICIAIS (capa, ficha catalográfica, dedicatória, prefácio, sumário).
+# Livros têm isso; artigos normalmente não. A chave é um pedaço do nome do arquivo
+# (basta ser único), o valor é até que página pular.
+#
+# Exemplo: "3BocciOzone": 20   ->  pula as páginas 1 a 20 desse PDF.
+# Descubra o número certo abrindo o PDF e vendo onde começa o Capítulo 1.
+# ---------------------------------------------------------------------------
+PULAR_PAGINAS_INICIAIS = {
+    "Interventionsforfemalepatternhairloss-Review": 2,
+    "TABELATACO-TabelaBrasileiradeComposiodeAlimentos": 10,
+}
+
+# Trechos específicos pra remover (regex). A detecção automática pega cabeçalhos e
+# rodapés repetidos; use isto para blocos que aparecem UMA vez só (copyright de editora).
 BOILERPLATE_PATTERNS = [
     r"Esse material é rastreável.*?Código Penal Brasileiro\.",
     r"Copyright.{0,4}Lippincott Williams & Wilkins.*?prohibited\.?",
+    # avisos de "todos os direitos reservados" / "all rights reserved" (PT e EN)
+    r"(Todos os direitos reservados|All rights reserved).{0,800}?(sem autorização escrita.*?\.|without written permission.*?\.)",
+    r"Nenhuma parte deste (material|livro).{0,600}?(do Editor|Publisher)[^.]*\.",
+    r"No part of this (material|book|work).{0,600}?(the Publisher|permission)[^.]*\.",
 ]
+
+
+def pular_ate(nome_arquivo: str) -> int:
+    """Retorna até qual página pular neste PDF (0 = não pula nada)."""
+    for chave, ate in PULAR_PAGINAS_INICIAIS.items():
+        if chave.lower() in nome_arquivo.lower():
+            return ate
+    return 0
 
 
 def remover_boilerplate(texto: str) -> str:
@@ -59,10 +84,20 @@ def remover_linhas(texto: str, lixo: set) -> str:
 
 def limpar_texto(texto: str) -> str:
     texto = remover_boilerplate(texto)
-    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)        # junta hífen quebrado
+    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)        # junta hífen quebrado (fim de linha)
     texto = re.sub(r"\n[ \t]*\n", "\uE000", texto)        # protege parágrafos
     texto = texto.replace("\n", " ")                      # quebra de largura -> espaço
     texto = texto.replace("\uE000", "\n\n")               # restaura parágrafos
+
+    # marcadores de página de revista grudados no texto: "| 967", "968 |", "| 969 |"
+    texto = re.sub(r"\|\s*\d{1,4}\s*\|", " ", texto)      # | 969 |
+    texto = re.sub(r"(?:^|\s)\|\s*\d{1,4}(?=\s)", " ", texto)   # | 967
+    texto = re.sub(r"(?:^|\s)\d{1,4}\s*\|(?=\s)", " ", texto)   # 968 |
+
+    # hífen de quebra que sobrou no meio do texto: "side ef- fects" -> "side effects"
+    # (só junta quando a 2ª parte é minúscula, pra não colar palavras compostas legítimas)
+    texto = re.sub(r"(\w)-\s+([a-záéíóúâêôãõç])", r"\1\2", texto)
+
     texto = re.sub(r"[ \t]{2,}", " ", texto)
     return texto.strip()
 
@@ -115,10 +150,14 @@ def main():
     lixo = detectar_linhas_repetidas(paginas_por_pdf)
 
     # Passo 2: monta os chunks já sem o lixo repetido
-    chunks, sem_texto = [], []
+    chunks, sem_texto, puladas = [], [], 0
     for caminho in pdfs:
         nome = os.path.basename(caminho)
+        ate = pular_ate(nome)
         for n_pagina, bruto in enumerate(paginas_por_pdf[caminho], start=1):
+            if n_pagina <= ate:            # páginas iniciais do livro (capa, prefácio…)
+                puladas += 1
+                continue
             if not bruto.strip():
                 sem_texto.append((nome, n_pagina))
                 continue
@@ -130,6 +169,10 @@ def main():
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
 
     print(f"\n{len(chunks)} chunks gerados de {len(pdfs)} PDF(s) -> {OUT_FILE}")
+
+    if puladas:
+        print(f"{puladas} página(s) inicial(is) puladas (capa/prefácio/sumário), "
+              f"conforme PULAR_PAGINAS_INICIAIS.")
 
     if lixo:
         print(f"\n{len(lixo)} linha(s) repetidas removidas automaticamente (cabeçalho/rodapé). Exemplos:")
