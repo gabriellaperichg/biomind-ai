@@ -65,6 +65,8 @@ header h1{ font-family:'Fraunces',serif; font-weight:500; font-size:20px; }
 .plain p{ margin-bottom:9px; font-size:14px; }
 
 .sources{ margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+.disclaimer-note{ margin-top:14px; padding:11px 13px; background:#F1F4F3; border:1px solid var(--border);
+  border-radius:9px; font-size:11.5px; line-height:1.5; color:var(--muted); }
 .sources h4{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
   letter-spacing:.12em; color:var(--muted); margin-bottom:8px; font-weight:500; }
 .src{ font-size:12.5px; color:#33514E; padding:3px 0; }
@@ -233,6 +235,9 @@ async function ask(text){
         html += '<div class="sources"><h4>Fontes consultadas</h4>' +
           data.sources.map(s=>`<div class="src"><b>[${s.n}]</b> ${esc(s.source)} — pág. ${esc(String(s.pages))} <span class="sim">sim. ${s.sim}</span></div>`).join('') +
           '</div>';
+      }
+      if(data.disclaimer){
+        html += `<div class="disclaimer-note">${esc(data.disclaimer)}</div>`;
       }
       addBot(html);
     } else if(data.status === 'sem_material'){

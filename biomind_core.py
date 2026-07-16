@@ -18,6 +18,16 @@ PISO_RELEVANCIA = 0.40          # calibre com o bge-m3 real (veja o README)
 OLLAMA_URL = "http://localhost:11434/api/chat"
 OLLAMA_MODEL = "llama3.1"       # troque pelo modelo que você baixou
 
+# Aviso fixo anexado a toda resposta bem-sucedida (não depende do modelo).
+AVISO_LEGAL = (
+    "⚠️ Observação: As informações apresentadas são baseadas em estudos, evidências "
+    "científicas e boas práticas, tendo como finalidade fornecer sugestões e apoiar a "
+    "análise do caso. Esta inteligência artificial não realiza diagnósticos, não define "
+    "condutas e não substitui a avaliação clínica. A decisão final sobre a conduta a ser "
+    "adotada é de responsabilidade exclusiva da biomédica responsável pelo acompanhamento "
+    "do paciente."
+)
+
 SYSTEM_PROMPT = """Você é o Biomind, assistente de APOIO À DECISÃO CLÍNICA em tricologia, usado por biomédicas e tricologistas.
 
 IDIOMA — regra crítica:
@@ -152,6 +162,7 @@ def responder(pergunta):
     return {
         "status": "ok",
         "answer": resposta,
+        "disclaimer": AVISO_LEGAL,
         "best_sim": trechos[0]["sim"],
         "sources": [
             {"n": i + 1, "source": t["source"], "pages": t["pages"], "sim": t["sim"]}
