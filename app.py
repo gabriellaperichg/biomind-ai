@@ -1,17 +1,30 @@
 """
-Biomind — servidor web local (interface gráfica da demo), v3.
+Biomind — servidor web local com autenticação e histórico de chats.
 
-Liga o index.html ao biomind_core e mantém todo o processamento local.
+Responsabilidades deste arquivo:
+- iniciar a aplicação FastAPI;
+- registrar os routers;
+- servir as páginas HTML;
+- disponibilizar o health check;
+- adicionar proteções HTTP básicas.
 
 Pré-requisitos:
-  1. Índice criado: python 02_embed.py build
-  2. Ollama rodando com o modelo configurado
+  1. Índice criado:
+     python embed.py build
+
+  2. Ollama rodando com o modelo configurado.
+
+  3. Banco atualizado:
+     alembic upgrade head
 
 Rodar:
   uvicorn app:app --host 0.0.0.0 --port 8000
 
-Depois abra:
+Abrir localmente:
   http://127.0.0.1:8000
+
+Na rede:
+  http://IP-DO-SERVIDOR:8000
 """
 
 from __future__ import annotations
@@ -19,23 +32,38 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi.staticfiles import StaticFiles
 
 import biomind_core as core
+
+from routers import admin, auth, chats
+
+
+# ---------------------------------------------------------------------------
+# Caminhos
+# ---------------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+INDEX_FILE = BASE_DIR / "index.html"
+LOGIN_FILE = BASE_DIR / "login.html"
+STATIC_DIR = BASE_DIR / "static"
+
 
 # ---------------------------------------------------------------------------
 # Configuração
 # ---------------------------------------------------------------------------
 
-AQUI = Path(__file__).resolve().parent
-INDEX_FILE = AQUI / "index.html"
+ENABLE_DOCS = os.getenv(
+    "BIOMIND_ENABLE_DOCS",
+    "0",
+) == "1"
 
-ENABLE_DOCS = os.getenv("BIOMIND_ENABLE_DOCS", "0") == "1"
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv(
@@ -45,21 +73,60 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+
 logging.basicConfig(
-    level=os.getenv("BIOMIND_LOG_LEVEL", "INFO").upper(),
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    level=os.getenv(
+        "BIOMIND_LOG_LEVEL",
+        "INFO",
+    ).upper(),
+    format=(
+        "%(asctime)s | "
+        "%(levelname)s | "
+        "%(name)s | "
+        "%(message)s"
+    ),
 )
+
+
 logger = logging.getLogger("biomind.app")
+
+
+# ---------------------------------------------------------------------------
+# Aplicação
+# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Biomind",
+    version="4.0.0",
     docs_url="/docs" if ENABLE_DOCS else None,
     redoc_url=None,
-    openapi_url="/openapi.json" if ENABLE_DOCS else None,
+    openapi_url=(
+        "/openapi.json"
+        if ENABLE_DOCS
+        else None
+    ),
 )
 
-# Protege contra requisições com cabeçalho Host inesperado.
-# Para uso em rede local, inclua o IP ou domínio em BIOMIND_ALLOWED_HOSTS.
+if not STATIC_DIR.is_dir():
+    raise RuntimeError(
+        f"Pasta static não encontrada: {STATIC_DIR}"
+    )
+
+app.mount(
+    "/static",
+    StaticFiles(directory=STATIC_DIR),
+    name="static",
+)
+
+# ---------------------------------------------------------------------------
+# Middlewares
+# ---------------------------------------------------------------------------
+
+# Impede requisições usando cabeçalhos Host inesperados.
+#
+# Para acesso pela rede local, inclua o IP do servidor:
+#
+# BIOMIND_ALLOWED_HOSTS=127.0.0.1,localhost,192.168.1.50
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=ALLOWED_HOSTS,
@@ -67,45 +134,140 @@ app.add_middleware(
 )
 
 
-class Pergunta(BaseModel):
-    """Corpo aceito por POST /ask."""
+@app.middleware("http")
+async def adicionar_cabecalhos_seguranca(
+    request,
+    call_next,
+):
+    """
+    Adiciona cabeçalhos básicos de segurança e privacidade.
+    """
 
-    model_config = ConfigDict(
-        extra="forbid",
-        str_strip_whitespace=True,
+    response = await call_next(request)
+
+    response.headers[
+        "X-Content-Type-Options"
+    ] = "nosniff"
+
+    response.headers[
+        "X-Frame-Options"
+    ] = "DENY"
+
+    response.headers[
+        "Referrer-Policy"
+    ] = "no-referrer"
+
+    response.headers[
+        "Cache-Control"
+    ] = "no-store"
+
+    response.headers[
+        "Permissions-Policy"
+    ] = (
+        "camera=(), "
+        "microphone=(), "
+        "geolocation=()"
     )
 
-    # Não usamos min_length=1 para manter a resposta amigável "status: vazio"
-    # esperada pela interface, em vez de devolver erro 422 para texto vazio.
-    texto: str = Field(default="", max_length=6000)
+    return response
 
 
 # ---------------------------------------------------------------------------
-# Cabeçalhos básicos de segurança e privacidade
+# Routers
 # ---------------------------------------------------------------------------
 
-@app.middleware("http")
-async def adicionar_cabecalhos_seguranca(request, call_next):
-    resposta = await call_next(request)
-    resposta.headers["X-Content-Type-Options"] = "nosniff"
-    resposta.headers["X-Frame-Options"] = "DENY"
-    resposta.headers["Referrer-Policy"] = "no-referrer"
-    resposta.headers["Cache-Control"] = "no-store"
-    return resposta
+app.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Autenticação"],
+)
 
+
+app.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["Administração"],
+)
+
+
+app.include_router(
+    chats.router,
+    prefix="/chats",
+    tags=["Chats"],
+)
+
+if not STATIC_DIR.is_dir():
+    raise RuntimeError(
+        f"Pasta de arquivos estáticos não encontrada: {STATIC_DIR}"
+    )
+
+app.mount(
+    "/static",
+    StaticFiles(directory=STATIC_DIR),
+    name="static",
+)
 
 # ---------------------------------------------------------------------------
-# Rotas
+# Páginas HTML
 # ---------------------------------------------------------------------------
 
-@app.get("/", include_in_schema=False, response_class=FileResponse)
-def home() -> FileResponse:
-    """Entrega a interface local."""
-    if not INDEX_FILE.is_file():
-        logger.error("index.html não encontrado em %s", INDEX_FILE)
+@app.get(
+    "/login",
+    include_in_schema=False,
+    response_class=FileResponse,
+)
+def login_page() -> FileResponse:
+    """
+    Entrega a página de autenticação.
+    """
+
+    if not LOGIN_FILE.is_file():
+        logger.error(
+            "login.html não encontrado em %s",
+            LOGIN_FILE,
+        )
+
         raise HTTPException(
             status_code=500,
-            detail="A interface não foi encontrada. Verifique se index.html está na pasta do app.py.",
+            detail=(
+                "A página de login não foi encontrada. "
+                "Verifique se login.html está na mesma "
+                "pasta do app.py."
+            ),
+        )
+
+    return FileResponse(
+        path=LOGIN_FILE,
+        media_type="text/html",
+    )
+
+
+@app.get(
+    "/",
+    include_in_schema=False,
+    response_class=FileResponse,
+)
+def home() -> FileResponse:
+    """
+    Entrega a interface principal.
+
+    A página deve chamar GET /auth/me ao carregar.
+    Caso receba 401, deve redirecionar para /login.
+    """
+
+    if not INDEX_FILE.is_file():
+        logger.error(
+            "index.html não encontrado em %s",
+            INDEX_FILE,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "A interface não foi encontrada. "
+                "Verifique se index.html está na mesma "
+                "pasta do app.py."
+            ),
         )
 
     return FileResponse(
@@ -114,46 +276,48 @@ def home() -> FileResponse:
     )
 
 
-@app.get("/health")
+# ---------------------------------------------------------------------------
+# Saúde da aplicação
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/health",
+    tags=["Sistema"],
+)
 def health() -> JSONResponse:
-    """Informa se o índice local está disponível."""
+    """
+    Verifica se o núcleo do Biomind e o índice estão disponíveis.
+
+    Essa rota permanece pública porque pode ser utilizada por ferramentas
+    de monitoramento.
+    """
+
     try:
-        resultado = core.health()
+        result = core.health()
+
     except Exception:
-        logger.exception("Falha ao consultar o estado do Biomind")
+        logger.exception(
+            "Falha ao consultar o estado do Biomind"
+        )
+
         return JSONResponse(
             status_code=503,
             content={
                 "status": "erro",
-                "message": "Não foi possível verificar o estado da base local.",
+                "message": (
+                    "Não foi possível verificar "
+                    "o estado da base local."
+                ),
             },
         )
 
-    codigo = 200 if resultado.get("status") == "ok" else 503
-    return JSONResponse(status_code=codigo, content=resultado)
+    status_code = (
+        200
+        if result.get("status") == "ok"
+        else 503
+    )
 
-
-@app.post("/ask", response_model=None)
-def ask(p: Pergunta) -> Any:
-    """Recebe o caso e devolve a orientação estruturada do biomind_core."""
-    if not p.texto:
-        return {
-            "status": "vazio",
-            "message": "Descreva o caso primeiro.",
-            "sources": [],
-        }
-
-    try:
-        return core.responder(p.texto)
-    except Exception:
-        # O core já trata erros esperados. Este bloco cobre falhas inesperadas
-        # sem expor detalhes internos, caminhos ou conteúdo clínico ao navegador.
-        logger.exception("Erro inesperado ao processar POST /ask")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "erro_servidor",
-                "message": "Ocorreu um erro interno ao processar a solicitação.",
-                "sources": [],
-            },
-        )
+    return JSONResponse(
+        status_code=status_code,
+        content=result,
+    )

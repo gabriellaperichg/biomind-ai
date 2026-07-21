@@ -5,258 +5,1506 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Biomind</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; }
-:root{
-  --bg:#F4F2EC; --surface:#fff; --ink:#16302E; --muted:#5F716E;
-  --primary:#1E5B57; --primary-2:#2C7C76; --accent:#B96B22; --accent-soft:#F6E9D8;
-  --border:#E2DED3;
+
+:root {
+  --bg: #F4F2EC;
+  --surface: #FFFFFF;
+  --ink: #16302E;
+  --muted: #5F716E;
+  --primary: #1E5B57;
+  --primary-2: #2C7C76;
+  --accent: #B96B22;
+  --accent-soft: #F6E9D8;
+  --danger: #9A3B23;
+  --danger-soft: #FBEDE9;
+  --border: #E2DED3;
+  --sidebar: #11302D;
+  --sidebar-text: #D6E2DF;
+  --sidebar-muted: #8FB3AD;
 }
-body{ font-family:'Inter',system-ui,sans-serif; color:var(--ink); background:var(--bg);
-  height:100vh; display:flex; font-size:15px; line-height:1.5; }
 
-/* sidebar */
-aside{ width:280px; flex-shrink:0; background:#11302D; color:#D6E2DF;
-  padding:26px 22px; display:flex; flex-direction:column; gap:24px; }
-.brand{ display:flex; align-items:baseline; gap:9px; }
-.brand .mark{ font-family:'Fraunces',serif; font-size:27px; font-weight:600; color:#FBFAF6; }
-.brand .ver{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6FA09A; }
-.tag{ font-size:13px; color:#9DB8B3; }
-.kb-title{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
-  letter-spacing:.13em; color:#6FA09A; margin-bottom:10px; }
-.kb-item{ display:flex; justify-content:space-between; padding:8px 0;
-  border-bottom:1px solid rgba(255,255,255,.07); font-size:13.5px; }
-.offline{ margin-top:auto; font-size:12px; color:#8FB3AD; display:flex; align-items:center; gap:8px; }
-.dot-on{ width:8px; height:8px; border-radius:50%; background:#54B89A; box-shadow:0 0 0 3px rgba(84,184,154,.18); }
+html, body {
+  height: 100%;
+}
 
-/* main */
-main{ flex:1; display:flex; flex-direction:column; min-width:0; }
-header{ padding:20px 30px 16px; border-bottom:1px solid var(--border); }
-header h1{ font-family:'Fraunces',serif; font-weight:500; font-size:20px; }
-.guard{ margin-top:9px; display:inline-flex; align-items:center; gap:8px; background:var(--accent-soft);
-  color:#8A4D14; border:1px solid #ECD7BC; padding:5px 11px; border-radius:100px; font-size:12px; font-weight:500; }
+body {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow: hidden;
+}
 
-.scroll{ flex:1; overflow-y:auto; padding:26px 30px 8px; }
-.thread{ max-width:740px; margin:0 auto; display:flex; flex-direction:column; gap:22px; }
+button, textarea {
+  font: inherit;
+}
 
-.user{ align-self:flex-end; max-width:78%; }
-.user .bubble{ background:var(--primary); color:#F4FAF8; padding:11px 15px;
-  border-radius:16px 16px 4px 16px; font-size:14.5px; }
+/* ------------------------------------------------------------------ */
+/* Barra lateral                                                      */
+/* ------------------------------------------------------------------ */
 
-.bot{ align-self:flex-start; width:100%; }
-.card{ background:var(--surface); border:1px solid var(--border); border-radius:4px 16px 16px 16px; padding:18px 20px 16px; }
-.bot-name{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
-  letter-spacing:.13em; color:var(--primary-2); margin-bottom:12px; }
+aside {
+  width: 292px;
+  flex-shrink: 0;
+  background: var(--sidebar);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 
-/* pathway */
-.path{ position:relative; padding-left:4px; }
-.path::before{ content:''; position:absolute; left:5px; top:7px; bottom:9px; width:2px; background:var(--border); }
-.step{ position:relative; padding-left:24px; padding-bottom:15px; }
-.step:last-child{ padding-bottom:0; }
-.step::before{ content:''; position:absolute; left:0; top:3px; width:12px; height:12px; border-radius:50%;
-  background:var(--primary); border:2.5px solid var(--surface); box-shadow:0 0 0 1.5px var(--primary); }
-.step.alert::before{ background:var(--accent); box-shadow:0 0 0 1.5px var(--accent); }
-.step-title{ font-size:12.5px; font-weight:600; color:var(--primary); margin-bottom:6px; }
-.step.alert .step-title{ color:var(--accent); }
-.step p{ margin-bottom:5px; font-size:14px; color:#243f3c; }
-.step ul{ list-style:none; display:flex; flex-direction:column; gap:5px; }
-.step li{ position:relative; padding-left:15px; font-size:14px; color:#243f3c; }
-.step li::before{ content:''; position:absolute; left:2px; top:8px; width:4px; height:4px; border-radius:50%; background:var(--primary-2); }
-.plain p{ margin-bottom:9px; font-size:14px; }
+.sidebar-top {
+  padding: 24px 18px 15px;
+}
 
-.sources{ margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
-.disclaimer-note{ margin-top:14px; padding:11px 13px; background:#F1F4F3; border:1px solid var(--border);
-  border-radius:9px; font-size:11.5px; line-height:1.5; color:var(--muted); }
-.sources h4{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
-  letter-spacing:.12em; color:var(--muted); margin-bottom:8px; font-weight:500; }
-.src{ font-size:12.5px; color:#33514E; padding:3px 0; }
-.src b{ color:var(--primary); font-weight:600; }
-.src .sim{ color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px; }
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 0 4px;
+}
 
-.warn{ background:var(--accent-soft); border:1px solid #ECD7BC; color:#8A4D14;
-  padding:12px 14px; border-radius:10px; font-size:13.5px; }
-.err{ background:#FBEDE9; border:1px solid #F0CFC5; color:#9A3B23; padding:12px 14px; border-radius:10px; font-size:13.5px; }
+.brand .mark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27px;
+  font-weight: 600;
+  color: #FBFAF6;
+}
 
-.examples{ display:flex; flex-wrap:wrap; gap:9px; }
-.chip{ background:var(--surface); border:1px solid var(--border); color:var(--ink);
-  padding:8px 13px; border-radius:100px; font-size:13px; cursor:pointer; font-family:inherit; }
-.chip:hover{ border-color:var(--primary-2); color:var(--primary); }
+.brand .ver {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  color: #6FA09A;
+}
 
-.typing{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
-.typing .dots{ display:flex; gap:4px; }
-.typing .dots span{ width:7px; height:7px; border-radius:50%; background:var(--primary-2); opacity:.4; animation:blink 1.1s infinite; }
-.typing .dots span:nth-child(2){ animation-delay:.18s; }
-.typing .dots span:nth-child(3){ animation-delay:.36s; }
-@keyframes blink{ 0%,60%,100%{opacity:.25} 30%{opacity:.9} }
+.tag {
+  margin: 8px 4px 0;
+  font-size: 12.5px;
+  color: #9DB8B3;
+}
 
-footer{ padding:14px 30px 22px; }
-.composer{ max-width:740px; margin:0 auto; background:var(--surface); border:1px solid var(--border);
-  border-radius:16px; padding:8px 8px 8px 16px; display:flex; align-items:flex-end; gap:10px; }
-.composer:focus-within{ border-color:var(--primary-2); }
-.composer textarea{ flex:1; border:none; resize:none; outline:none; font-family:inherit; font-size:14.5px;
-  color:var(--ink); background:transparent; max-height:140px; padding:7px 0; line-height:1.45; }
-.send{ flex-shrink:0; width:38px; height:38px; border-radius:11px; border:none; background:var(--primary);
-  color:#fff; cursor:pointer; display:grid; place-items:center; }
-.send:hover:not(:disabled){ background:var(--primary-2); }
-.send:disabled{ background:#B9C6C3; cursor:not-allowed; }
-.disclaimer{ max-width:740px; margin:9px auto 0; text-align:center; font-size:11.5px; color:var(--muted); }
+.new-chat {
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.07);
+  color: #FBFAF6;
+  padding: 10px 12px;
+  border-radius: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 
-@media (max-width:820px){
-  body{ flex-direction:column; }
-  aside{ width:100%; flex-direction:row; align-items:center; gap:14px; padding:14px 18px; }
-  aside .kb, aside .tag{ display:none; }
-  .offline{ margin:0 0 0 auto; }
-  header,.scroll,footer{ padding-left:18px; padding-right:18px; }
+.new-chat:hover {
+  background: rgba(255,255,255,.12);
+}
+
+.new-chat:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.chat-section-title {
+  padding: 8px 22px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  color: #6FA09A;
+}
+
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 0 10px 12px;
+}
+
+.chat-empty {
+  padding: 15px 12px;
+  font-size: 12.5px;
+  color: var(--sidebar-muted);
+}
+
+.chat-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--sidebar-text);
+  border-radius: 10px;
+  padding: 10px 10px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  gap: 6px;
+  align-items: center;
+}
+
+.chat-item:hover {
+  background: rgba(255,255,255,.07);
+}
+
+.chat-item.active {
+  background: rgba(255,255,255,.12);
+}
+
+.chat-main {
+  min-width: 0;
+}
+
+.chat-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.chat-time {
+  color: var(--sidebar-muted);
+  font-size: 10.5px;
+  margin-top: 2px;
+}
+
+.delete-chat {
+  border: none;
+  background: transparent;
+  color: #9DB8B3;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+}
+
+.chat-item:hover .delete-chat,
+.chat-item.active .delete-chat {
+  visibility: visible;
+}
+
+.delete-chat:hover {
+  color: #FFFFFF;
+  background: rgba(255,255,255,.12);
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 14px 18px 18px;
+}
+
+.offline {
+  font-size: 11.5px;
+  color: var(--sidebar-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 13px;
+}
+
+.dot-on {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #54B89A;
+  box-shadow: 0 0 0 3px rgba(84,184,154,.18);
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.user-name {
+  color: #FBFAF6;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  color: var(--sidebar-muted);
+  font-size: 10.5px;
+}
+
+.logout {
+  border: 1px solid rgba(255,255,255,.13);
+  background: transparent;
+  color: #D6E2DF;
+  border-radius: 8px;
+  padding: 7px 9px;
+  cursor: pointer;
+  font-size: 11.5px;
+}
+
+.logout:hover {
+  background: rgba(255,255,255,.08);
+}
+
+/* ------------------------------------------------------------------ */
+/* Conteúdo principal                                                  */
+/* ------------------------------------------------------------------ */
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+header {
+  padding: 18px 30px 15px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guard {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  color: #8A4D14;
+  border: 1px solid #ECD7BC;
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mobile-menu {
+  display: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 9px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 26px 30px 8px;
+}
+
+.thread {
+  max-width: 740px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.user {
+  align-self: flex-end;
+  max-width: 78%;
+}
+
+.user .bubble {
+  background: var(--primary);
+  color: #F4FAF8;
+  padding: 11px 15px;
+  border-radius: 16px 16px 4px 16px;
+  font-size: 14.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bot {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px 16px 16px 16px;
+  padding: 18px 20px 16px;
+}
+
+.bot-name {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  color: var(--primary-2);
+  margin-bottom: 12px;
+}
+
+.message-time {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 10.5px;
+  text-align: right;
+}
+
+/* trilha de investigação */
+
+.path {
+  position: relative;
+  padding-left: 4px;
+}
+
+.path::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  bottom: 9px;
+  width: 2px;
+  background: var(--border);
+}
+
+.step {
+  position: relative;
+  padding-left: 24px;
+  padding-bottom: 15px;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2.5px solid var(--surface);
+  box-shadow: 0 0 0 1.5px var(--primary);
+}
+
+.step.alert::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+
+.step-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.step.alert .step-title {
+  color: var(--accent);
+}
+
+.step p {
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #243F3C;
+}
+
+.step ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.step li {
+  position: relative;
+  padding-left: 15px;
+  font-size: 14px;
+  color: #243F3C;
+}
+
+.step li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-2);
+}
+
+.plain p {
+  margin-bottom: 9px;
+  font-size: 14px;
+}
+
+.sources {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sources h4 {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.src {
+  font-size: 12.5px;
+  color: #33514E;
+  padding: 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.src b {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.src .sim {
+  color: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+}
+
+.disclaimer-note {
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: #F1F4F3;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.warn {
+  background: var(--accent-soft);
+  border: 1px solid #ECD7BC;
+  color: #8A4D14;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.err {
+  background: var(--danger-soft);
+  border: 1px solid #F0CFC5;
+  color: var(--danger);
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 8px 13px;
+  border-radius: 100px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--primary-2);
+  color: var(--primary);
+}
+
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.typing .dots {
+  display: flex;
+  gap: 4px;
+}
+
+.typing .dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-2);
+  opacity: .4;
+  animation: blink 1.1s infinite;
+}
+
+.typing .dots span:nth-child(2) {
+  animation-delay: .18s;
+}
+
+.typing .dots span:nth-child(3) {
+  animation-delay: .36s;
+}
+
+@keyframes blink {
+  0%, 60%, 100% { opacity: .25; }
+  30% { opacity: .9; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Rodapé e campo de envio                                             */
+/* ------------------------------------------------------------------ */
+
+footer {
+  padding: 14px 30px 22px;
+}
+
+.composer {
+  max-width: 740px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 8px 8px 16px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.composer:focus-within {
+  border-color: var(--primary-2);
+}
+
+.composer textarea {
+  flex: 1;
+  border: none;
+  resize: none;
+  outline: none;
+  font-size: 14.5px;
+  color: var(--ink);
+  background: transparent;
+  max-height: 140px;
+  padding: 7px 0;
+  line-height: 1.45;
+}
+
+.send {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: none;
+  background: var(--primary);
+  color: #FFFFFF;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.send:hover:not(:disabled) {
+  background: var(--primary-2);
+}
+
+.send:disabled {
+  background: #B9C6C3;
+  cursor: not-allowed;
+}
+
+.disclaimer {
+  max-width: 740px;
+  margin: 9px auto 0;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Camada de carregamento                                              */
+/* ------------------------------------------------------------------ */
+
+.app-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.app-loading.hidden {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile                                                              */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 820px) {
+  aside {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+    box-shadow: 10px 0 35px rgba(0,0,0,.16);
+  }
+
+  aside.open {
+    transform: translateX(0);
+  }
+
+  .mobile-menu {
+    display: grid;
+    place-items: center;
+  }
+
+  header,
+  .scroll,
+  footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .guard {
+    border-radius: 10px;
+  }
+
+  .user {
+    max-width: 90%;
+  }
 }
 </style>
 </head>
+
 <body>
-<aside>
-  <div>
-    <div class="brand"><span class="mark">Biomind</span><span class="ver">offline</span></div>
-    <p class="tag" style="margin-top:8px">Apoio à decisão clínica em tricologia, a partir da base da clínica.</p>
+<div class="app-loading" id="app-loading">
+  Verificando acesso ao Biomind…
+</div>
+
+<aside id="sidebar">
+  <div class="sidebar-top">
+    <div class="brand">
+      <span class="mark">Biomind</span>
+      <span class="ver">local</span>
+    </div>
+
+    <p class="tag">
+      Apoio à investigação clínica em tricologia com base privada.
+    </p>
+
+    <button class="new-chat" id="new-chat" type="button">
+      <span aria-hidden="true">＋</span>
+      Novo chat
+    </button>
   </div>
-  <div class="kb">
-    <div class="kb-title">Base de conhecimento</div>
-    <div class="kb-item"><span>Artigos e estudos</span><span>privados</span></div>
-    <div class="kb-item"><span>Casos clínicos</span><span>privados</span></div>
+
+  <div class="chat-section-title">Suas conversas</div>
+
+  <div class="chat-list" id="chat-list">
+    <div class="chat-empty">Carregando conversas…</div>
   </div>
-  <div class="offline"><span class="dot-on"></span>Roda offline. Nenhum dado sai da clínica.</div>
+
+  <div class="sidebar-footer">
+    <div class="offline">
+      <span class="dot-on"></span>
+      Processamento na infraestrutura autorizada
+    </div>
+
+    <div class="user-box">
+      <div class="user-info">
+        <div class="user-name" id="user-name">Usuária</div>
+        <div class="user-role" id="user-role"></div>
+      </div>
+
+      <button class="logout" id="logout" type="button">
+        Sair
+      </button>
+    </div>
+  </div>
 </aside>
 
 <main>
   <header>
-    <h1>Orientação de caso</h1>
-    <div class="guard">Orienta o que investigar — a decisão clínica é sempre da profissional</div>
+    <div class="header-copy">
+      <h1 id="page-title">Nova conversa</h1>
+
+      <div class="guard">
+        Não informe nome, CPF, telefone ou outros dados identificáveis
+      </div>
+    </div>
+
+    <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Abrir conversas">
+      ☰
+    </button>
   </header>
 
   <div class="scroll" id="scroll">
-    <div class="thread" id="thread">
-      <div class="bot">
-        <div class="card">
-          <div class="bot-name">Biomind</div>
-          <div class="plain">
-            <p>Descreva o caso do paciente — sintomas, histórico, o que você observou — e eu sugiro <b>o que investigar</b>, com base na literatura e nos casos da clínica.</p>
-          </div>
-        </div>
-      </div>
-      <div class="examples" id="examples">
-        <button class="chip">Mulher de 29 anos com rarefação no topo, deseja engravidar</button>
-        <button class="chip">Homem de 32 anos perdendo cabelo nas têmporas e no vértice</button>
-        <button class="chip">Paciente com oleosidade excessiva e alopecia inicial</button>
-      </div>
-    </div>
+    <div class="thread" id="thread"></div>
   </div>
 
   <footer>
     <div class="composer">
-      <textarea id="input" rows="1" placeholder="Descreva o caso: sintomas, histórico, o que você observou…"></textarea>
-      <button class="send" id="send" aria-label="Enviar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      <textarea
+        id="input"
+        rows="1"
+        maxlength="10000"
+        placeholder="Descreva o caso sem dados que identifiquem o paciente…"
+      ></textarea>
+
+      <button class="send" id="send" type="button" aria-label="Enviar">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="19" x2="12" y2="5"></line>
+          <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>
       </button>
     </div>
-    <p class="disclaimer">Apoio à decisão — não substitui avaliação nem julgamento clínico.</p>
+
+    <p class="disclaimer">
+      Apoio à decisão — não substitui avaliação nem julgamento clínico.
+    </p>
   </footer>
 </main>
 
 <script>
-const thread = document.getElementById('thread');
-const scroll = document.getElementById('scroll');
-const input = document.getElementById('input');
-const send = document.getElementById('send');
-const examples = document.getElementById('examples');
+"use strict";
 
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function inline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>'); }
+/* ------------------------------------------------------------------ */
+/* Estado                                                              */
+/* ------------------------------------------------------------------ */
 
-// renderiza a resposta do modelo em "trilha de investigação"
-function renderAnswer(text){
-  const lines = text.split('\n');
-  const hasSections = lines.some(l => l.trim().startsWith('### '));
-  if(!hasSections){
-    return '<div class="plain">' + lines.filter(l=>l.trim()).map(l=>`<p>${inline(l)}</p>`).join('') + '</div>';
+const state = {
+  user: null,
+  chats: [],
+  activeChatId: null,
+  sending: false,
+};
+
+const appLoading = document.getElementById("app-loading");
+const sidebar = document.getElementById("sidebar");
+const chatList = document.getElementById("chat-list");
+const pageTitle = document.getElementById("page-title");
+const userName = document.getElementById("user-name");
+const userRole = document.getElementById("user-role");
+const thread = document.getElementById("thread");
+const scroll = document.getElementById("scroll");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const newChatButton = document.getElementById("new-chat");
+const logoutButton = document.getElementById("logout");
+const mobileMenuButton = document.getElementById("mobile-menu");
+
+/* ------------------------------------------------------------------ */
+/* Utilidades                                                          */
+/* ------------------------------------------------------------------ */
+
+function esc(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function inline(value) {
+  return esc(value).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function formatDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value.endsWith?.("Z") ? value : `${value}Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
   }
-  let html = '<div class="path">'; let open=false;
-  const flush = () => { if(open){ html += '</div>'; open=false; } };
-  let buffer = [];
-  const closeList = () => { if(buffer.length){ html += '<ul>'+buffer.map(b=>`<li>${inline(b)}</li>`).join('')+'</ul>'; buffer=[]; } };
-  for(const raw of lines){
-    const line = raw.trim();
-    if(!line) continue;
-    if(line.startsWith('### ')){
-      closeList(); flush();
-      const title = line.slice(4).trim();
-      const alert = /alerta|encaminh/i.test(title);
-      html += `<div class="step${alert?' alert':''}"><div class="step-title">${esc(title)}</div>`;
-      open = true;
-    } else if(line.startsWith('- ')){
-      buffer.push(line.slice(2).trim());
-    } else {
-      closeList();
-      html += `<p>${inline(line)}</p>`;
+
+  const today = new Date();
+  const sameDay = date.toDateString() === today.toDateString();
+
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    sameDay
+      ? { hour: "2-digit", minute: "2-digit" }
+      : { day: "2-digit", month: "2-digit", year: "2-digit" }
+  ).format(date);
+}
+
+function similarityText(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  const number = Number(value);
+
+  if (Number.isNaN(number)) {
+    return String(value);
+  }
+
+  return number.toFixed(3);
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: "same-origin",
+    ...options,
+    headers: {
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  if (response.status === 401) {
+    window.location.replace("/login");
+    throw new Error("Sessão expirada.");
+  }
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      data?.detail ||
+      data?.message ||
+      "Não foi possível concluir a operação.";
+
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    scroll.scrollTop = scroll.scrollHeight;
+  });
+}
+
+function setSending(value) {
+  state.sending = value;
+  send.disabled = value;
+  newChatButton.disabled = value;
+  input.disabled = value;
+}
+
+function closeMobileSidebar() {
+  sidebar.classList.remove("open");
+}
+
+/* ------------------------------------------------------------------ */
+/* Renderização das respostas                                          */
+/* ------------------------------------------------------------------ */
+
+function renderAnswer(text) {
+  const lines = String(text ?? "").split("\n");
+  const hasSections = lines.some(
+    line => line.trim().startsWith("### ")
+  );
+
+  if (!hasSections) {
+    const paragraphs = lines
+      .filter(line => line.trim())
+      .map(line => `<p>${inline(line)}</p>`)
+      .join("");
+
+    return `<div class="plain">${paragraphs}</div>`;
+  }
+
+  let html = '<div class="path">';
+  let sectionOpen = false;
+  let listItems = [];
+
+  function closeList() {
+    if (!listItems.length) return;
+
+    html +=
+      "<ul>" +
+      listItems.map(item => `<li>${inline(item)}</li>`).join("") +
+      "</ul>";
+
+    listItems = [];
+  }
+
+  function closeSection() {
+    if (sectionOpen) {
+      html += "</div>";
+      sectionOpen = false;
     }
   }
-  closeList(); flush();
-  html += '</div>';
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line) continue;
+
+    if (line.startsWith("### ")) {
+      closeList();
+      closeSection();
+
+      const title = line.slice(4).trim();
+      const alert = /alerta|encaminh|urgên|risco/i.test(title);
+
+      html +=
+        `<div class="step${alert ? " alert" : ""}">` +
+        `<div class="step-title">${esc(title)}</div>`;
+
+      sectionOpen = true;
+      continue;
+    }
+
+    if (line.startsWith("- ")) {
+      listItems.push(line.slice(2).trim());
+      continue;
+    }
+
+    closeList();
+    html += `<p>${inline(line)}</p>`;
+  }
+
+  closeList();
+  closeSection();
+
+  html += "</div>";
+
   return html;
 }
 
-function addUser(text){
-  const el = document.createElement('div');
-  el.className = 'user';
-  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
-  thread.appendChild(el);
-  scroll.scrollTop = scroll.scrollHeight;
+function normalizeSource(source, index) {
+  return {
+    number:
+      source?.source_number ??
+      source?.n ??
+      index + 1,
+
+    name:
+      source?.source_name ??
+      source?.source ??
+      "Fonte não identificada",
+
+    pages:
+      source?.pages ??
+      source?.page ??
+      "não informada",
+
+    similarity:
+      source?.similarity ??
+      source?.sim ??
+      null,
+  };
 }
 
-function addBot(innerHTML){
-  const el = document.createElement('div');
-  el.className = 'bot';
-  el.innerHTML = `<div class="card"><div class="bot-name">Biomind</div>${innerHTML}</div>`;
-  thread.appendChild(el);
-  scroll.scrollTop = scroll.scrollHeight;
-  return el;
+function renderSources(sources) {
+  if (!Array.isArray(sources) || !sources.length) {
+    return "";
+  }
+
+  const items = sources.map((rawSource, index) => {
+    const source = normalizeSource(rawSource, index);
+    const sim = similarityText(source.similarity);
+
+    return (
+      '<div class="src">' +
+      `<b>[${esc(source.number)}]</b> ` +
+      `${esc(source.name)} — pág. ${esc(source.pages)}` +
+      (sim ? ` <span class="sim">sim. ${esc(sim)}</span>` : "") +
+      "</div>"
+    );
+  }).join("");
+
+  return (
+    '<div class="sources">' +
+    "<h4>Fontes consultadas</h4>" +
+    items +
+    "</div>"
+  );
 }
 
-async function ask(text){
-  if(!text.trim()) return;
-  if(examples) examples.remove();
-  addUser(text);
-  input.value=''; input.style.height='auto';
-  send.disabled = true;
-  const loading = addBot('<div class="typing"><span>Analisando o caso e consultando a base</span><div class="dots"><span></span><span></span><span></span></div></div>');
-  try{
-    const r = await fetch('/ask', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({texto:text})});
-    const data = await r.json();
-    loading.remove();
-    if(data.status === 'ok'){
-      let html = renderAnswer(data.answer);
-      if(data.sources && data.sources.length){
-        html += '<div class="sources"><h4>Fontes consultadas</h4>' +
-          data.sources.map(s=>`<div class="src"><b>[${s.n}]</b> ${esc(s.source)} — pág. ${esc(String(s.pages))} <span class="sim">sim. ${s.sim}</span></div>`).join('') +
-          '</div>';
-      }
-      if(data.disclaimer){
-        html += `<div class="disclaimer-note">${esc(data.disclaimer)}</div>`;
-      }
-      addBot(html);
-    } else if(data.status === 'sem_material'){
-      addBot(`<div class="warn">${esc(data.message)}</div>`);
-    } else {
-      addBot(`<div class="err">${esc(data.message || 'Não foi possível gerar a orientação.')}</div>`);
+function buildAssistantHtml(message) {
+  const status = message?.status || "ok";
+  const content =
+    message?.content ??
+    message?.answer ??
+    message?.message ??
+    "";
+
+  if (status === "sem_material") {
+    return `<div class="warn">${esc(
+      content || "Não encontrei material suficiente na base para orientar este caso."
+    )}</div>`;
+  }
+
+  if (status !== "ok" && status !== "processando") {
+    return `<div class="err">${esc(
+      content || "Não foi possível gerar a orientação."
+    )}</div>`;
+  }
+
+  let html = renderAnswer(content);
+  html += renderSources(message?.sources || []);
+
+  const disclaimer = message?.disclaimer;
+
+  if (disclaimer) {
+    html += `<div class="disclaimer-note">${esc(disclaimer)}</div>`;
+  }
+
+  return html;
+}
+
+/* ------------------------------------------------------------------ */
+/* Elementos do chat                                                   */
+/* ------------------------------------------------------------------ */
+
+function addUserMessage(text, createdAt = null) {
+  const element = document.createElement("div");
+  element.className = "user";
+
+  element.innerHTML =
+    `<div class="bubble">${esc(text)}</div>` +
+    (createdAt
+      ? `<div class="message-time">${esc(formatDate(createdAt))}</div>`
+      : "");
+
+  thread.appendChild(element);
+  scrollToBottom();
+
+  return element;
+}
+
+function addBotMessage(innerHtml, createdAt = null) {
+  const element = document.createElement("div");
+  element.className = "bot";
+
+  element.innerHTML =
+    '<div class="card">' +
+    '<div class="bot-name">Biomind</div>' +
+    innerHtml +
+    (createdAt
+      ? `<div class="message-time">${esc(formatDate(createdAt))}</div>`
+      : "") +
+    "</div>";
+
+  thread.appendChild(element);
+  scrollToBottom();
+
+  return element;
+}
+
+function renderWelcome() {
+  thread.innerHTML = `
+    <div class="bot">
+      <div class="card">
+        <div class="bot-name">Biomind</div>
+        <div class="plain">
+          <p>
+            Descreva o caso sem dados que identifiquem o paciente.
+            Eu sugiro <b>o que investigar</b> com base na literatura
+            e nos materiais privados da clínica.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="examples" id="examples">
+      <button class="chip" type="button">
+        Mulher de 29 anos com rarefação no topo e desejo de engravidar
+      </button>
+
+      <button class="chip" type="button">
+        Homem de 32 anos com perda nas têmporas e no vértice
+      </button>
+
+      <button class="chip" type="button">
+        Paciente com oleosidade excessiva e alopecia inicial
+      </button>
+    </div>
+  `;
+
+  const examples = document.getElementById("examples");
+
+  examples?.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      input.value = chip.textContent.trim();
+      resizeInput();
+      input.focus();
+    });
+  });
+
+  scrollToBottom();
+}
+
+function renderChatMessages(messages) {
+  thread.innerHTML = "";
+
+  if (!Array.isArray(messages) || !messages.length) {
+    renderWelcome();
+    return;
+  }
+
+  for (const message of messages) {
+    if (message.role === "user") {
+      addUserMessage(message.content, message.created_at);
+      continue;
     }
-  }catch(e){
-    loading.remove();
-    addBot('<div class="err">Falha de conexão com o servidor local. Confira se o Biomind está rodando.</div>');
-  }finally{
-    send.disabled = false;
+
+    addBotMessage(
+      buildAssistantHtml(message),
+      message.created_at
+    );
   }
 }
 
-send.onclick = () => ask(input.value);
-input.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(input.value); }});
-input.addEventListener('input', () => { input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,140)+'px'; });
-if(examples){ examples.querySelectorAll('.chip').forEach(c => c.onclick = () => ask(c.textContent)); }
+/* ------------------------------------------------------------------ */
+/* Lista lateral                                                       */
+/* ------------------------------------------------------------------ */
+
+function renderChatList() {
+  chatList.innerHTML = "";
+
+  if (!state.chats.length) {
+    chatList.innerHTML =
+      '<div class="chat-empty">Nenhuma conversa salva.</div>';
+    return;
+  }
+
+  for (const chat of state.chats) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+      "chat-item" +
+      (chat.id === state.activeChatId ? " active" : "");
+
+    button.innerHTML = `
+      <span class="chat-main">
+        <span class="chat-title">${esc(chat.title)}</span>
+        <span class="chat-time">${esc(formatDate(chat.updated_at))}</span>
+      </span>
+
+      <span
+        class="delete-chat"
+        role="button"
+        tabindex="0"
+        aria-label="Excluir conversa"
+        title="Excluir conversa"
+      >×</span>
+    `;
+
+    button.addEventListener("click", event => {
+      if (event.target.closest(".delete-chat")) return;
+      openChat(chat.id);
+    });
+
+    const deleteButton = button.querySelector(".delete-chat");
+
+    deleteButton.addEventListener("click", event => {
+      event.stopPropagation();
+      deleteChat(chat.id);
+    });
+
+    deleteButton.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteChat(chat.id);
+      }
+    });
+
+    chatList.appendChild(button);
+  }
+}
+
+async function loadChats() {
+  const data = await api("/chats");
+
+  state.chats = Array.isArray(data.chats)
+    ? data.chats
+    : [];
+
+  renderChatList();
+}
+
+async function openChat(chatId) {
+  if (state.sending) return;
+
+  const data = await api(`/chats/${encodeURIComponent(chatId)}`);
+
+  state.activeChatId = data.chat.id;
+  pageTitle.textContent = data.chat.title || "Conversa";
+
+  renderChatMessages(data.chat.messages || []);
+  renderChatList();
+  closeMobileSidebar();
+  input.focus();
+}
+
+function startNewChat() {
+  if (state.sending) return;
+
+  state.activeChatId = null;
+  pageTitle.textContent = "Nova conversa";
+  renderChatList();
+  renderWelcome();
+  closeMobileSidebar();
+  input.focus();
+}
+
+async function deleteChat(chatId) {
+  if (state.sending) return;
+
+  const chat = state.chats.find(item => item.id === chatId);
+  const title = chat?.title || "esta conversa";
+
+  const confirmed = window.confirm(
+    `Deseja excluir "${title}"? Esta ação não poderá ser desfeita na interface.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await api(`/chats/${encodeURIComponent(chatId)}`, {
+      method: "DELETE",
+    });
+
+    state.chats = state.chats.filter(
+      item => item.id !== chatId
+    );
+
+    if (state.activeChatId === chatId) {
+      startNewChat();
+    }
+
+    renderChatList();
+  } catch (error) {
+    window.alert(error.message);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Envio                                                               */
+/* ------------------------------------------------------------------ */
+
+async function createChat() {
+  const data = await api("/chats", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+
+  const chat = data.chat;
+
+  state.activeChatId = chat.id;
+  state.chats.unshift(chat);
+  pageTitle.textContent = chat.title || "Nova conversa";
+  renderChatList();
+
+  return chat.id;
+}
+
+async function ask(text) {
+  const question = String(text || "").trim();
+
+  if (!question || state.sending) return;
+
+  const oldExamples = document.getElementById("examples");
+  oldExamples?.remove();
+
+  addUserMessage(question);
+  input.value = "";
+  resizeInput();
+  setSending(true);
+
+  const loading = addBotMessage(`
+    <div class="typing">
+      <span>Analisando o caso e consultando a base</span>
+      <div class="dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  `);
+
+  try {
+    const chatId =
+      state.activeChatId ||
+      await createChat();
+
+    const data = await api(
+      `/chats/${encodeURIComponent(chatId)}/ask`,
+      {
+        method: "POST",
+        body: JSON.stringify({ texto: question }),
+      }
+    );
+
+    loading.remove();
+
+    addBotMessage(
+      buildAssistantHtml({
+        status: data.status,
+        content: data.answer || data.message,
+        disclaimer: data.disclaimer,
+        sources: data.sources,
+      })
+    );
+
+    await loadChats();
+
+    const activeChat = state.chats.find(
+      chat => chat.id === state.activeChatId
+    );
+
+    if (activeChat) {
+      pageTitle.textContent = activeChat.title;
+    }
+  } catch (error) {
+    loading.remove();
+
+    addBotMessage(
+      `<div class="err">${esc(error.message)}</div>`
+    );
+  } finally {
+    setSending(false);
+    input.focus();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Login, logout e inicialização                                       */
+/* ------------------------------------------------------------------ */
+
+async function loadAuthenticatedUser() {
+  const data = await api("/auth/me");
+
+  state.user = data.user;
+  userName.textContent = data.user.name || data.user.email;
+  userRole.textContent =
+    data.user.role === "admin"
+      ? "Administradora"
+      : "Biomédica";
+
+}
+
+async function logout() {
+  logoutButton.disabled = true;
+
+  try {
+    await api("/auth/logout", {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    window.location.replace("/login");
+  }
+}
+
+async function initialize() {
+  try {
+    await loadAuthenticatedUser();
+    await loadChats();
+    startNewChat();
+
+    if (state.user?.must_change_password) {
+      addBotMessage(`
+        <div class="warn">
+          Você está usando uma senha temporária. Altere-a antes de utilizar
+          o sistema com casos reais.
+        </div>
+      `);
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    appLoading.classList.add("hidden");
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Eventos                                                             */
+/* ------------------------------------------------------------------ */
+
+function resizeInput() {
+  input.style.height = "auto";
+  input.style.height =
+    Math.min(input.scrollHeight, 140) + "px";
+}
+
+send.addEventListener("click", () => {
+  ask(input.value);
+});
+
+input.addEventListener("keydown", event => {
+  if (
+    event.key === "Enter" &&
+    !event.shiftKey
+  ) {
+    event.preventDefault();
+    ask(input.value);
+  }
+});
+
+input.addEventListener("input", resizeInput);
+
+newChatButton.addEventListener("click", startNewChat);
+logoutButton.addEventListener("click", logout);
+
+mobileMenuButton.addEventListener("click", () => {
+  sidebar.classList.toggle("open");
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closeMobileSidebar();
+  }
+});
+
+initialize();
 </script>
 </body>
 </html>
