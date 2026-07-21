@@ -551,7 +551,7 @@ def ask_chat(
                 "Não foi possível gerar a resposta neste momento."
             ),
             status="erro_modelo",
-            generation_time_ms=measured_time_ms,
+            generation_time_ms=technical_error,
             error_message=technical_error,
             created_at=utc_now(),
         )
@@ -568,7 +568,7 @@ def ask_chat(
             entity_id=chat.id,
             metadata={
                 "error_type": technical_error,
-                "generation_time_ms": measured_time_ms,
+                "generation_time_ms": technical_error,
             },
         )
 
