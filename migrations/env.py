@@ -29,10 +29,6 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-print(
-    "TABELAS DETECTADAS: ",
-    list(target_metadata.tables.keys())
-)
 
 # ---------------------------------------------------------------------------
 # Migrações offline

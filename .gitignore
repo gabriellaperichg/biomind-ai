@@ -1,5 +1,24 @@
-/biomind_db/
+# Ambientes e caches Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Bancos e dados gerados localmente
+biomind_db/
 chunks.jsonl
 pdfs/
-__pycache__/
-.venv/
+data/*.db
+data/*.db-*
+placeholder.db
+
+# Configurações locais e segredos
+.env
+.env.*
+!.env.example
+
+# IDE e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

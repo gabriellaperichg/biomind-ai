@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import time
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -10,7 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from services.rag_service import RagServiceError, answer_question
 from database import get_db
-from dependencies import get_current_user
+from dependencies import require_password_changed
 from models import (
     AuditLog,
     Chat,
@@ -116,192 +114,6 @@ def create_chat_title(question: str) -> str:
     return f"{normalized[:57].rstrip()}..."
 
 
-def normalize_pages(value: Any) -> str | None:
-    if value is None:
-        return None
-
-    if isinstance(value, list):
-        return ", ".join(
-            str(item)
-            for item in value
-        )
-
-    return str(value)
-
-
-def normalize_source(
-    source: Any,
-    number: int,
-) -> dict:
-    """
-    Aceita fontes em diferentes formatos para facilitar a adaptação
-    ao retorno atual do biomind_core.
-    """
-
-    if isinstance(source, str):
-        return {
-            "source_number": number,
-            "source_name": source,
-            "pages": None,
-            "similarity": None,
-            "chunk_ids": None,
-        }
-
-    if not isinstance(source, dict):
-        return {
-            "source_number": number,
-            "source_name": "Fonte não identificada",
-            "pages": None,
-            "similarity": None,
-            "chunk_ids": None,
-        }
-
-    source_name = (
-        source.get("source_name")
-        or source.get("source")
-        or source.get("arquivo")
-        or source.get("file")
-        or source.get("document")
-        or source.get("documento")
-        or "Fonte não identificada"
-    )
-
-    pages = (
-        source.get("pages")
-        or source.get("page")
-        or source.get("paginas")
-        or source.get("páginas")
-    )
-
-    similarity = (
-        source.get("similarity")
-        if source.get("similarity") is not None
-        else source.get("score")
-    )
-
-    if similarity is None:
-        similarity = source.get("similaridade")
-
-    chunk_ids = (
-        source.get("chunk_ids")
-        or source.get("chunk_ids_json")
-        or source.get("chunks")
-    )
-
-    if chunk_ids is not None and not isinstance(chunk_ids, list):
-        chunk_ids = [str(chunk_ids)]
-
-    return {
-        "source_number": number,
-        "source_name": str(source_name),
-        "pages": normalize_pages(pages),
-        "similarity": similarity,
-        "chunk_ids": chunk_ids,
-    }
-
-
-def normalize_core_result(
-    result: Any,
-    measured_time_ms: int,
-) -> dict:
-    """
-    Converte diferentes formatos de retorno do biomind_core
-    para o formato usado pelo banco.
-
-    Ajuste esta função conforme o retorno real de core.responder().
-    """
-
-    if isinstance(result, str):
-        return {
-            "status": "ok",
-            "answer": result,
-            "disclaimer": None,
-            "best_similarity": None,
-            "sources": [],
-            "model_name": None,
-            "embedding_model": None,
-            "prompt_version": None,
-            "generation_time_ms": measured_time_ms,
-        }
-
-    if hasattr(result, "model_dump"):
-        result = result.model_dump()
-
-    if not isinstance(result, dict):
-        raise TypeError(
-            "biomind_core.responder() retornou um formato inválido."
-        )
-
-    answer = (
-        result.get("answer")
-        or result.get("resposta")
-        or result.get("content")
-        or result.get("conteudo")
-        or result.get("texto")
-        or ""
-    )
-
-    result_status = result.get("status") or "ok"
-
-    if not answer and result_status == "ok":
-        result_status = "sem_material"
-
-    raw_sources = (
-        result.get("sources")
-        or result.get("fontes")
-        or []
-    )
-
-    normalized_sources = [
-        normalize_source(source, number)
-        for number, source in enumerate(
-            raw_sources,
-            start=1,
-        )
-    ]
-
-    best_similarity = result.get("best_similarity")
-
-    if best_similarity is None:
-        best_similarity = result.get("best_sim")
-
-    if best_similarity is None:
-        best_similarity = result.get("melhor_similaridade")
-
-    disclaimer = (
-        result.get("disclaimer")
-        or result.get("aviso")
-        or result.get("aviso_legal")
-    )
-
-    generation_time_ms = (
-        result.get("generation_time_ms")
-        or result.get("tempo_geracao_ms")
-        or measured_time_ms
-    )
-
-    return {
-        "status": result_status,
-        "answer": answer,
-        "disclaimer": disclaimer,
-        "best_similarity": best_similarity,
-        "sources": normalized_sources,
-        "model_name": (
-            result.get("model_name")
-            or result.get("modelo")
-        ),
-        "embedding_model": (
-            result.get("embedding_model")
-            or result.get("modelo_embedding")
-        ),
-        "prompt_version": (
-            result.get("prompt_version")
-            or result.get("versao_prompt")
-        ),
-        "generation_time_ms": generation_time_ms,
-    }
-
-
 def serialize_source(source: MessageSource) -> dict:
     return {
         "id": source.id,
@@ -351,7 +163,7 @@ def serialize_chat_summary(chat: Chat) -> dict:
 @router.get("")
 @router.get("/")
 def list_chats(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ) -> dict:
     chats = db.scalars(
@@ -389,7 +201,7 @@ def list_chats(
 )
 def create_chat(
     payload: CreateChatRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ) -> dict:
     title = "Nova conversa"
@@ -437,7 +249,7 @@ def create_chat(
 @router.get("/{chat_id}")
 def get_chat(
     chat_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ) -> dict:
     chat = find_owned_chat(
@@ -467,7 +279,7 @@ def get_chat(
 @router.delete("/{chat_id}")
 def delete_chat(
     chat_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ) -> dict:
     chat = find_owned_chat(
@@ -503,7 +315,7 @@ def delete_chat(
 def ask_chat(
     chat_id: str,
     payload: AskRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ) -> dict:
     chat = find_owned_chat(
@@ -513,6 +325,12 @@ def ask_chat(
     )
 
     question = payload.texto.strip()
+
+    if len(question) < 3:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Descreva o caso com pelo menos 3 caracteres.",
+        )
 
     # Salva a pergunta antes de chamar o RAG.
     user_message = Message(
@@ -540,6 +358,10 @@ def ask_chat(
         result = answer_question(question)
 
     except RagServiceError as exc:
+        measured_time_ms = round(
+            (time.perf_counter() - start_time) * 1000
+        )
+
         # Não salvar traceback ou conteúdo sensível.
         technical_error = type(exc).__name__
 
@@ -551,7 +373,7 @@ def ask_chat(
                 "Não foi possível gerar a resposta neste momento."
             ),
             status="erro_modelo",
-            generation_time_ms=technical_error,
+            generation_time_ms=measured_time_ms,
             error_message=technical_error,
             created_at=utc_now(),
         )
@@ -568,7 +390,7 @@ def ask_chat(
             entity_id=chat.id,
             metadata={
                 "error_type": technical_error,
-                "generation_time_ms": technical_error,
+                "generation_time_ms": measured_time_ms,
             },
         )
 

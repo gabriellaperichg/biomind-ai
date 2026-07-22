@@ -29,6 +29,6 @@ def hash_session_token(token: str) -> str:
 
 
 def session_expiration() -> datetime:
-    return datetime.now(timezone.utc) + timedelta(
+    return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
         hours=SESSION_DURATION_HOURS
     )

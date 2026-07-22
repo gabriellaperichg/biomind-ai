@@ -83,8 +83,22 @@ def get_current_user(
     return user
 
 
-def require_admin(
+def require_password_changed(
     current_user: User = Depends(get_current_user),
+) -> User:
+    """Bloqueia áreas protegidas enquanto a senha temporária não for trocada."""
+
+    if current_user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Troca de senha obrigatória.",
+        )
+
+    return current_user
+
+
+def require_admin(
+    current_user: User = Depends(require_password_changed),
 ) -> User:
     """
     Permite o acesso somente a administradoras.

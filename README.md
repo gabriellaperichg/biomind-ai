@@ -1,51 +1,68 @@
-# Biomind — apoio à decisão (offline)
+# Biomind — autenticação, chats e RAG local
 
-Assistente que orienta a investigação de casos a partir da base de PDFs da clínica.
-Roda 100% na máquina local — nenhum dado sai para a internet.
+Assistente interno de apoio à investigação clínica em tricologia. O RAG, os embeddings e a geração são executados na infraestrutura autorizada.
 
-## Arquivos
-- `01_chunk.py` — lê os PDFs (pasta `pdfs/`) e gera os chunks (`chunks.jsonl`).
-- `02_embed.py` — gera embeddings e monta o índice (Chroma) em `biomind_db/`.
-- `biomind_core.py` — lógica central (busca + piso de relevância + Ollama).
-- `03_answer.py` — usar pela linha de comando.
-- `app.py` + `index.html` — interface gráfica (web) para a demo.
+## Estrutura principal
 
-## Instalação (uma vez)
+- `chunk.py`: transforma os documentos em chunks.
+- `embed.py`: cria o índice Chroma em `biomind_db/`.
+- `biomind_core.py`: recuperação, piso de relevância e integração com Ollama.
+- `app.py`: aplicação FastAPI.
+- `routers/`: autenticação, usuários e chats.
+- `services/`: auditoria e integração com o núcleo RAG.
+- `static/`: páginas e arquivos do navegador.
+- `data/biomind_app.db`: banco SQLite local, criado pelas migrações e não versionado.
+
+## Instalação
+
 ```bash
-pip install -r requirements.txt
-```
-Instale o Ollama (https://ollama.com) e baixe um modelo:
-```bash
-ollama pull llama3.1
-```
-
-## Preparar a base (sempre que adicionar/atualizar PDFs)
-```bash
-# coloque os PDFs em ./pdfs/
-python 01_chunk.py
-python 02_embed.py build
+python -m venv .venv
+source .venv/Scripts/activate  # Git Bash no Windows
+python -m pip install -r requirements.txt
 ```
 
-## Rodar a interface (a demo)
-```bash
-uvicorn app:app --host 127.0.0.1 --port 8000
-```
-Abra **http://127.0.0.1:8000** no navegador.
+## Preparar o banco de aplicação
 
-Ou, sem interface, pela linha de comando:
 ```bash
-python 03_answer.py "mulher de 29 anos, rarefacao no topo, deseja engravidar"
+alembic upgrade head
+python -m scripts.create_admin
 ```
 
-## Botões para calibrar (em `biomind_core.py`)
-- `OLLAMA_MODEL` — o modelo que você baixou no Ollama.
-- `PISO_RELEVANCIA` — similaridade mínima para responder. Calibre: rode casos que
-  a base cobre bem e casos que ela não cobre; o piso fica no meio dos dois grupos.
+## Preparar a base RAG
 
-## Dicas para a demo
-- **Latência**: um modelo local pode levar de alguns segundos a mais de um minuto por
-  resposta, dependendo da máquina. Sem GPU, prefira um modelo menor (ex.: `llama3.2:3b`).
-- **Aquecimento**: a primeira pergunta carrega o modelo na memória e é a mais lenta.
-  Faça uma pergunta de teste antes da demo para "aquecer".
-- **Ensaio**: rode hoje, de ponta a ponta, com os PDFs reais e exatamente os casos que
-  você vai mostrar. Deixe o Ollama rodando antes de começar.
+```bash
+python chunk.py
+python embed.py build
+```
+
+## Executar
+
+Desenvolvimento local:
+
+```bash
+export BIOMIND_ENABLE_DOCS=1
+export BIOMIND_ALLOWED_HOSTS="127.0.0.1,localhost,testserver"
+uvicorn app:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Abra:
+
+- `http://127.0.0.1:8000/login`
+- `http://127.0.0.1:8000/docs` durante o desenvolvimento
+
+Para acesso pela rede local, adicione o IP ou hostname do servidor a `BIOMIND_ALLOWED_HOSTS` e use HTTPS antes de inserir casos reais.
+
+## Atualizar o banco após mudanças nos modelos
+
+```bash
+alembic revision --autogenerate -m "Descrição da alteração"
+alembic upgrade head
+```
+
+## Testes rápidos
+
+```bash
+python -m compileall -q .
+alembic check
+python -c "import app; print(app.INDEX_FILE.exists(), app.LOGIN_FILE.exists())"
+```

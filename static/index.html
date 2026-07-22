@@ -1447,17 +1447,14 @@ async function logout() {
 async function initialize() {
   try {
     await loadAuthenticatedUser();
-    await loadChats();
-    startNewChat();
 
     if (state.user?.must_change_password) {
-      addBotMessage(`
-        <div class="warn">
-          Você está usando uma senha temporária. Altere-a antes de utilizar
-          o sistema com casos reais.
-        </div>
-      `);
+      window.location.replace("/login");
+      return;
     }
+
+    await loadChats();
+    startNewChat();
   } catch (error) {
     console.error(error);
   } finally {

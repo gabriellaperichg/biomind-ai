@@ -49,9 +49,9 @@ from routers import admin, auth, chats
 
 BASE_DIR = Path(__file__).resolve().parent
 
-INDEX_FILE = BASE_DIR / "index.html"
-LOGIN_FILE = BASE_DIR / "login.html"
 STATIC_DIR = BASE_DIR / "static"
+INDEX_FILE = STATIC_DIR / "index.html"
+LOGIN_FILE = STATIC_DIR / "login.html"
 
 
 # ---------------------------------------------------------------------------
@@ -196,16 +196,6 @@ app.include_router(
     tags=["Chats"],
 )
 
-if not STATIC_DIR.is_dir():
-    raise RuntimeError(
-        f"Pasta de arquivos estáticos não encontrada: {STATIC_DIR}"
-    )
-
-app.mount(
-    "/static",
-    StaticFiles(directory=STATIC_DIR),
-    name="static",
-)
 
 # ---------------------------------------------------------------------------
 # Páginas HTML
@@ -231,8 +221,7 @@ def login_page() -> FileResponse:
             status_code=500,
             detail=(
                 "A página de login não foi encontrada. "
-                "Verifique se login.html está na mesma "
-                "pasta do app.py."
+                "Verifique se static/login.html existe."
             ),
         )
 
@@ -265,8 +254,7 @@ def home() -> FileResponse:
             status_code=500,
             detail=(
                 "A interface não foi encontrada. "
-                "Verifique se index.html está na mesma "
-                "pasta do app.py."
+                "Verifique se static/index.html existe."
             ),
         )
 
