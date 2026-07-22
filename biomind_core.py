@@ -26,6 +26,18 @@ from urllib.parse import urlparse
 import chromadb
 import requests
 
+from functools import lru_cache
+from sentence_transformers import SentenceTransformer
+
+
+@lru_cache(maxsize=1)
+def obter_modelo_embedding() -> SentenceTransformer:
+    return SentenceTransformer(
+        "BAAI/bge-m3",
+        local_files_only=True,
+        device="cpu",
+    )
+
 # ---------------------------------------------------------------------------
 # Configuração
 # ---------------------------------------------------------------------------
@@ -47,9 +59,10 @@ ENFORCE_LOCAL_OLLAMA = os.getenv("BIOMIND_LOCAL_OLLAMA_ONLY", "1") == "1"
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434/api/chat")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
-OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
-OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
+OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "30m")
+OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
 MAX_GENERATIONS = max(1, int(os.getenv("BIOMIND_MAX_GENERATIONS", "1")))
+OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "350"))
 
 AVISO_LEGAL = (
     "⚠️ Observação: As informações apresentadas são baseadas em estudos, evidências "
@@ -348,36 +361,38 @@ def _validar_ollama_local() -> None:
         )
 
 
-def perguntar_ollama(system: str, user: str) -> str:
-    _validar_ollama_local()
-
+def perguntar_ollama(system_prompt: str, user_prompt: str) -> str:
     payload = {
         "model": OLLAMA_MODEL,
         "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user",
+                "content": user_prompt,
+            },
         ],
         "stream": False,
         "keep_alive": OLLAMA_KEEP_ALIVE,
         "options": {
-            "temperature": 0.1,
             "num_ctx": OLLAMA_NUM_CTX,
+            "num_predict": OLLAMA_NUM_PREDICT,
+            "temperature": 0.1,
         },
     }
 
-    with _generation_gate:
-        resposta = _http.post(
-            OLLAMA_URL,
-            json=payload,
-            timeout=(5, 600),
-        )
+    resposta = _http.post(
+        OLLAMA_URL,
+        json=payload,
+        timeout=(10, 300),
+    )
 
     resposta.raise_for_status()
-    corpo = resposta.json()
-    conteudo = (corpo.get("message") or {}).get("content")
-    if not isinstance(conteudo, str) or not conteudo.strip():
-        raise RuntimeError("O Ollama respondeu sem conteúdo de texto.")
-    return conteudo.strip()
+
+    dados = resposta.json()
+    return dados["message"]["content"]
 
 
 def _citacoes_validas(resposta: str, quantidade_fontes: int) -> list[int]:
