@@ -1,0 +1,23 @@
+[
+  {
+    "name": "queda feminina com descamacao e medicamentos",
+    "question": "Paciente feminina, queda na coroa, couro cabeludo oleoso e escamando, toma anticoncepcional e antidepressivo.",
+    "expected_any_terms": ["descama", "oleos", "inflama", "dermatite", "anamnese", "tricoscopia", "medicamento"],
+    "forbidden_source_terms": ["consentimento", "intralesionaldecorticoide"],
+    "forbidden_content_types": ["procedure", "adverse_event"]
+  },
+  {
+    "name": "padrao masculino em temporas e vertice",
+    "question": "Homem de 32 anos com perda nas têmporas e no vértice.",
+    "expected_any_terms": ["tempor", "vertice", "padrão", "padrao", "tricoscopia", "androgen"],
+    "forbidden_source_terms": ["consentimento"],
+    "forbidden_content_types": ["procedure"]
+  },
+  {
+    "name": "complicacao apos mesoterapia",
+    "question": "Paciente com dor intensa, eritema e perda de cabelo após mesoterapia. Quais riscos e sinais de alerta constam na base?",
+    "expected_any_terms": ["mesoterapia", "eritema", "dor", "complica", "atrofia", "cicatriz"],
+    "forbidden_source_terms": [],
+    "forbidden_content_types": []
+  }
+]

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <meta name="referrer" content="no-referrer">
+  <title>Entrar — Biomind</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/login.js" defer></script>
+</head>
+
+<body class="login-page">
+  <main class="login-shell">
+    <section class="login-brand" aria-labelledby="brand-title">
+      <div>
+        <div class="brand-line">
+          <span class="brand-name" id="brand-title">Biomind</span>
+          <span class="brand-status">local</span>
+        </div>
+
+        <p class="brand-description">
+          Apoio à investigação clínica em tricologia com base documental
+          privada e processamento na infraestrutura autorizada.
+        </p>
+      </div>
+
+      <div class="privacy-card">
+        <span class="privacy-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Uso interno</strong>
+          <p>
+            Não informe nome, CPF, telefone, endereço ou qualquer dado que
+            identifique o paciente.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel" aria-label="Acesso ao Biomind">
+      <div class="login-card">
+        <div id="login-view">
+          <p class="eyebrow">Acesso restrito</p>
+          <h1>Entre na sua conta</h1>
+          <p class="form-description">
+            Utilize o e-mail e a senha fornecidos pela administradora.
+          </p>
+
+          <form id="login-form" novalidate>
+            <label class="field">
+              <span>E-mail</span>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="username"
+                maxlength="255"
+                required
+                autofocus
+              >
+            </label>
+
+            <label class="field">
+              <span>Senha</span>
+
+              <span class="password-control">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  maxlength="200"
+                  required
+                >
+
+                <button
+                  class="show-password"
+                  type="button"
+                  data-toggle-password="password"
+                  aria-label="Mostrar senha"
+                >
+                  Mostrar
+                </button>
+              </span>
+            </label>
+
+            <div
+              class="form-message"
+              id="login-message"
+              role="alert"
+              aria-live="polite"
+            ></div>
+
+            <button class="primary-button" id="login-button" type="submit">
+              <span class="button-label">Entrar</span>
+              <span class="button-loading" hidden>Verificando…</span>
+            </button>
+          </form>
+        </div>
+
+        <div id="change-password-view" hidden>
+          <p class="eyebrow">Primeiro acesso</p>
+          <h1>Crie uma nova senha</h1>
+          <p class="form-description">
+            A senha recebida é temporária. Defina uma nova senha antes de
+            continuar.
+          </p>
+
+          <form id="change-password-form" novalidate>
+            <label class="field">
+              <span>Senha temporária</span>
+
+              <span class="password-control">
+                <input
+                  id="current-password"
+                  type="password"
+                  autocomplete="current-password"
+                  maxlength="200"
+                  required
+                >
+
+                <button
+                  class="show-password"
+                  type="button"
+                  data-toggle-password="current-password"
+                  aria-label="Mostrar senha temporária"
+                >
+                  Mostrar
+                </button>
+              </span>
+            </label>
+
+            <label class="field">
+              <span>Nova senha</span>
+
+              <span class="password-control">
+                <input
+                  id="new-password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="10"
+                  maxlength="200"
+                  required
+                >
+
+                <button
+                  class="show-password"
+                  type="button"
+                  data-toggle-password="new-password"
+                  aria-label="Mostrar nova senha"
+                >
+                  Mostrar
+                </button>
+              </span>
+            </label>
+
+            <label class="field">
+              <span>Confirme a nova senha</span>
+
+              <span class="password-control">
+                <input
+                  id="confirm-password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="10"
+                  maxlength="200"
+                  required
+                >
+
+                <button
+                  class="show-password"
+                  type="button"
+                  data-toggle-password="confirm-password"
+                  aria-label="Mostrar confirmação da senha"
+                >
+                  Mostrar
+                </button>
+              </span>
+            </label>
+
+            <p class="password-hint">
+              Use pelo menos 10 caracteres. Uma combinação de palavras é
+              mais fácil de lembrar e mais segura.
+            </p>
+
+            <div
+              class="form-message"
+              id="change-password-message"
+              role="alert"
+              aria-live="polite"
+            ></div>
+
+            <button
+              class="primary-button"
+              id="change-password-button"
+              type="submit"
+            >
+              <span class="button-label">Alterar senha</span>
+              <span class="button-loading" hidden>Alterando…</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <p class="login-footer">
+        Apoio à decisão — não substitui avaliação nem julgamento clínico.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
