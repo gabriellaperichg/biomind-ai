@@ -1,150 +1,311 @@
 """
-Biomind — servidor web (com login) para o piloto na RunPod.
+Biomind — servidor web local com autenticação e histórico de chats.
 
-- Login por usuária: cada biomédica entra com seu usuário/senha.
-- Registra cada pergunta/resposta em logs/biomind_log.jsonl, incluindo QUEM perguntou.
-- Usuários e segredo de sessão vêm de variáveis de ambiente (nunca no código).
+Responsabilidades deste arquivo:
+- iniciar a aplicação FastAPI;
+- registrar os routers;
+- servir as páginas HTML;
+- disponibilizar o health check;
+- adicionar proteções HTTP básicas.
 
-Configurar antes de subir (no terminal do pod):
-  export BIOMIND_USERS="ana:senhaAna,bia:senhaBia,carol:senhaCarol"
-  export BIOMIND_SECRET="uma-frase-longa-e-aleatoria-qualquer"
+Pré-requisitos:
+  1. Índice criado:
+     python embed.py build
+
+  2. Ollama rodando com o modelo configurado.
+
+  3. Banco atualizado:
+     alembic upgrade head
 
 Rodar:
   uvicorn app:app --host 0.0.0.0 --port 8000
+
+Abrir localmente:
+  http://127.0.0.1:8000
+
+Na rede:
+  http://IP-DO-SERVIDOR:8000
 """
 
-import os
-import json
-import time
-import secrets
-import threading
-from datetime import datetime
+from __future__ import annotations
 
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from pydantic import BaseModel
-from starlette.middleware.sessions import SessionMiddleware
+import logging
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 import biomind_core as core
 
-AQUI = os.path.dirname(os.path.abspath(__file__))
-
-# ------------------- usuários e sessão -------------------
-def _carregar_usuarios():
-    bruto = os.environ.get("BIOMIND_USERS", "").strip()
-    usuarios = {}
-    for par in bruto.split(","):
-        if ":" in par:
-            u, s = par.split(":", 1)
-            usuarios[u.strip()] = s.strip()
-    if not usuarios:
-        print("AVISO: BIOMIND_USERS não definido. Usando usuário padrão 'biomedica' / 'trocar-senha'.")
-        usuarios = {"biomedica": "trocar-senha"}
-    return usuarios
-
-USUARIOS = _carregar_usuarios()
-SECRET = os.environ.get("BIOMIND_SECRET") or secrets.token_hex(16)
-
-app = FastAPI(title="Biomind")
-app.add_middleware(SessionMiddleware, secret_key=SECRET)
-
-# ------------------- logs -------------------
-LOG_DIR = os.environ.get("BIOMIND_LOG_DIR", os.path.join(AQUI, "logs"))
-LOG_FILE = os.path.join(LOG_DIR, "biomind_log.jsonl")
-_log_lock = threading.Lock()
+from routers import admin, auth, chats
 
 
-def registrar(entrada: dict):
+# ---------------------------------------------------------------------------
+# Caminhos
+# ---------------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+STATIC_DIR = BASE_DIR / "static"
+INDEX_FILE = STATIC_DIR / "index.html"
+LOGIN_FILE = STATIC_DIR / "login.html"
+
+
+# ---------------------------------------------------------------------------
+# Configuração
+# ---------------------------------------------------------------------------
+
+ENABLE_DOCS = os.getenv(
+    "BIOMIND_ENABLE_DOCS",
+    "0",
+) == "1"
+
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "BIOMIND_ALLOWED_HOSTS",
+        "127.0.0.1,localhost,testserver",
+    ).split(",")
+    if host.strip()
+]
+
+
+logging.basicConfig(
+    level=os.getenv(
+        "BIOMIND_LOG_LEVEL",
+        "INFO",
+    ).upper(),
+    format=(
+        "%(asctime)s | "
+        "%(levelname)s | "
+        "%(name)s | "
+        "%(message)s"
+    ),
+)
+
+
+logger = logging.getLogger("biomind.app")
+
+
+# ---------------------------------------------------------------------------
+# Aplicação
+# ---------------------------------------------------------------------------
+
+app = FastAPI(
+    title="Biomind",
+    version="4.0.0",
+    docs_url="/docs" if ENABLE_DOCS else None,
+    redoc_url=None,
+    openapi_url=(
+        "/openapi.json"
+        if ENABLE_DOCS
+        else None
+    ),
+)
+
+if not STATIC_DIR.is_dir():
+    raise RuntimeError(
+        f"Pasta static não encontrada: {STATIC_DIR}"
+    )
+
+app.mount(
+    "/static",
+    StaticFiles(directory=STATIC_DIR),
+    name="static",
+)
+
+# ---------------------------------------------------------------------------
+# Middlewares
+# ---------------------------------------------------------------------------
+
+# Impede requisições usando cabeçalhos Host inesperados.
+#
+# Para acesso pela rede local, inclua o IP do servidor:
+#
+# BIOMIND_ALLOWED_HOSTS=127.0.0.1,localhost,192.168.1.50
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=ALLOWED_HOSTS,
+    www_redirect=False,
+)
+
+
+@app.middleware("http")
+async def adicionar_cabecalhos_seguranca(
+    request,
+    call_next,
+):
+    """
+    Adiciona cabeçalhos básicos de segurança e privacidade.
+    """
+
+    response = await call_next(request)
+
+    response.headers[
+        "X-Content-Type-Options"
+    ] = "nosniff"
+
+    response.headers[
+        "X-Frame-Options"
+    ] = "DENY"
+
+    response.headers[
+        "Referrer-Policy"
+    ] = "no-referrer"
+
+    response.headers[
+        "Cache-Control"
+    ] = "no-store"
+
+    response.headers[
+        "Permissions-Policy"
+    ] = (
+        "camera=(), "
+        "microphone=(), "
+        "geolocation=()"
+    )
+
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
+
+app.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Autenticação"],
+)
+
+
+app.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["Administração"],
+)
+
+
+app.include_router(
+    chats.router,
+    prefix="/chats",
+    tags=["Chats"],
+)
+
+
+# ---------------------------------------------------------------------------
+# Páginas HTML
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/login",
+    include_in_schema=False,
+    response_class=FileResponse,
+)
+def login_page() -> FileResponse:
+    """
+    Entrega a página de autenticação.
+    """
+
+    if not LOGIN_FILE.is_file():
+        logger.error(
+            "login.html não encontrado em %s",
+            LOGIN_FILE,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "A página de login não foi encontrada. "
+                "Verifique se static/login.html existe."
+            ),
+        )
+
+    return FileResponse(
+        path=LOGIN_FILE,
+        media_type="text/html",
+    )
+
+
+@app.get(
+    "/",
+    include_in_schema=False,
+    response_class=FileResponse,
+)
+def home() -> FileResponse:
+    """
+    Entrega a interface principal.
+
+    A página deve chamar GET /auth/me ao carregar.
+    Caso receba 401, deve redirecionar para /login.
+    """
+
+    if not INDEX_FILE.is_file():
+        logger.error(
+            "index.html não encontrado em %s",
+            INDEX_FILE,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "A interface não foi encontrada. "
+                "Verifique se static/index.html existe."
+            ),
+        )
+
+    return FileResponse(
+        path=INDEX_FILE,
+        media_type="text/html",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Saúde da aplicação
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/health",
+    tags=["Sistema"],
+)
+def health() -> JSONResponse:
+    """
+    Verifica se o núcleo do Biomind e o índice estão disponíveis.
+
+    Essa rota permanece pública porque pode ser utilizada por ferramentas
+    de monitoramento.
+    """
+
     try:
-        os.makedirs(LOG_DIR, exist_ok=True)
-        with _log_lock:
-            with open(LOG_FILE, "a", encoding="utf-8") as f:
-                f.write(json.dumps(entrada, ensure_ascii=False) + "\n")
+        result = core.health()
+
     except Exception:
-        pass
+        logger.exception(
+            "Falha ao consultar o estado do Biomind"
+        )
 
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "erro",
+                "message": (
+                    "Não foi possível verificar "
+                    "o estado da base local."
+                ),
+            },
+        )
 
-LOGIN_HTML = """<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Biomind — Acesso</title>
-<style>
-body{font-family:system-ui,sans-serif;background:#11302D;color:#16302E;height:100vh;margin:0;
-display:grid;place-items:center}
-.box{background:#fff;padding:34px 30px;border-radius:16px;width:300px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-h1{font-size:22px;margin:0 0 4px;color:#1E5B57}
-p{font-size:13px;color:#5F716E;margin:0 0 20px}
-label{font-size:12px;color:#5F716E;display:block;margin:12px 0 4px}
-input{width:100%;padding:10px;border:1px solid #E2DED3;border-radius:9px;font-size:14px;box-sizing:border-box}
-button{width:100%;margin-top:18px;padding:11px;border:0;border-radius:10px;background:#1E5B57;color:#fff;
-font-size:14px;cursor:pointer}
-.erro{color:#9A3B23;font-size:12.5px;margin-top:12px;text-align:center}
-</style></head><body>
-<form class="box" method="post" action="/login">
-<h1>Biomind</h1><p>Apoio à decisão em tricologia</p>
-<label>Usuária</label><input name="usuario" autofocus>
-<label>Senha</label><input name="senha" type="password">
-<button type="submit">Entrar</button>
-__ERRO__
-</form></body></html>"""
+    status_code = (
+        200
+        if result.get("status") == "ok"
+        else 503
+    )
 
-
-class Pergunta(BaseModel):
-    texto: str
-
-
-@app.get("/login", response_class=HTMLResponse)
-def login_form(erro: int = 0):
-    msg = '<div class="erro">Usuária ou senha inválida.</div>' if erro else ""
-    return LOGIN_HTML.replace("__ERRO__", msg)
-
-
-@app.post("/login")
-def login(request: Request, usuario: str = Form(...), senha: str = Form(...)):
-    if USUARIOS.get(usuario) and secrets.compare_digest(USUARIOS[usuario], senha):
-        request.session["user"] = usuario
-        return RedirectResponse("/", status_code=303)
-    return RedirectResponse("/login?erro=1", status_code=303)
-
-
-@app.get("/logout")
-def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse("/login", status_code=303)
-
-
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    if not request.session.get("user"):
-        return RedirectResponse("/login", status_code=303)
-    with open(os.path.join(AQUI, "index.html"), encoding="utf-8") as f:
-        return f.read()
-
-
-@app.post("/ask")
-def ask(p: Pergunta, request: Request):
-    usuario = request.session.get("user")
-    if not usuario:
-        return JSONResponse({"status": "nao_autenticado",
-                             "message": "Sessão expirada. Recarregue a página e entre novamente."},
-                            status_code=401)
-
-    texto = (p.texto or "").strip()
-    if not texto:
-        return {"status": "vazio", "message": "Descreva o caso primeiro."}
-
-    inicio = time.time()
-    resultado = core.responder(texto)
-    duracao_ms = int((time.time() - inicio) * 1000)
-
-    registrar({
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
-        "usuario": usuario,
-        "origem": request.client.host if request.client else None,
-        "pergunta": texto,
-        "status": resultado.get("status"),
-        "best_sim": resultado.get("best_sim"),
-        "resposta": resultado.get("answer") or resultado.get("message"),
-        "fontes": resultado.get("sources"),
-        "duracao_ms": duracao_ms,
-    })
-    return resultado
+    return JSONResponse(
+        status_code=status_code,
+        content=result,
+    )
