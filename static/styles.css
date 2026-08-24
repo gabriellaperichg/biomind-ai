@@ -5,19 +5,20 @@
 }
 
 :root {
-  --bg: #F4F2EC;
-  --surface: #FFFFFF;
-  --ink: #16302E;
-  --muted: #5F716E;
-  --primary: #1E5B57;
-  --primary-hover: #2C7C76;
-  --accent: #B96B22;
-  --accent-soft: #F6E9D8;
-  --border: #E2DED3;
-  --danger: #9A3B23;
-  --danger-soft: #FBEDE9;
-  --success: #1E5B57;
-  --success-soft: #E8F3EF;
+  --navy: #070819;
+  --navy-2: #121321;
+  --ink: #111426;
+  --muted: #8c929c;
+  --panel: #f4f7f9;
+  --card: #ffffff;
+  --input: #f1f4f6;
+  --border: #dfe3e7;
+  --gold: #d9b461;
+  --gold-dark: #a87f35;
+  --danger: #a13e3e;
+  --danger-soft: #fff0f0;
+  --success: #2d7057;
+  --success-soft: #edf8f2;
 }
 
 html,
@@ -28,9 +29,13 @@ body {
 body {
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   color: var(--ink);
-  background: var(--bg);
-  font-size: 15px;
+  background: #191919;
+  font-size: 13px;
   line-height: 1.5;
+}
+
+body.login-page {
+  overflow: hidden;
 }
 
 button,
@@ -44,150 +49,139 @@ button {
 
 .login-page {
   min-height: 100vh;
+  padding: 0;
+  position: relative;
 }
 
 .login-shell {
+  width: 100%;
   min-height: 100vh;
+  height: 100vh;
+  margin: 0;
   display: grid;
-  grid-template-columns: minmax(300px, .9fr) minmax(420px, 1.1fr);
+  grid-template-columns: 52% 48%;
+  overflow: hidden;
+  border-radius: 0;
 }
 
 .login-brand {
-  background: #11302D;
-  color: #D6E2DF;
-  padding: clamp(34px, 6vw, 82px);
+  min-height: 100vh;
+  height: 100vh;
+  padding: 0 7vw 7vh;
+  background:
+    radial-gradient(circle at 48% 30%, rgba(38, 40, 71, .10), transparent 33%),
+    linear-gradient(180deg, #07081b 0%, #08091d 55%, #2b2830 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 52px;
+  align-items: center;
 }
 
-.brand-line {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+.brand-content {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
 }
 
-.brand-name {
-  font-family: Georgia, "Times New Roman", serif;
-  color: #FBFAF6;
-  font-size: clamp(38px, 5vw, 62px);
-  font-weight: 600;
-  line-height: 1;
+.trichon-logo {
+  display: block;
+  width: min(390px, 78%);
+  height: auto;
+  transform: translateY(0);
 }
 
-.brand-status {
-  font-family: Consolas, "Courier New", monospace;
-  color: #6FA09A;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-}
-
-.brand-description {
-  max-width: 540px;
-  color: #AFC5C0;
-  font-size: clamp(15px, 1.6vw, 18px);
-  margin-top: 22px;
-}
-
-.privacy-card {
-  max-width: 530px;
-  display: flex;
-  gap: 12px;
-  padding: 16px 17px;
-  border: 1px solid rgba(255,255,255,.11);
-  border-radius: 13px;
-  background: rgba(255,255,255,.055);
-}
-
-.privacy-card strong {
-  color: #FBFAF6;
-  font-size: 13px;
-}
-
-.privacy-card p {
-  color: #AFC5C0;
-  font-size: 12.5px;
-  margin-top: 3px;
-}
-
-.privacy-dot {
-  width: 9px;
-  height: 9px;
-  margin-top: 6px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #54B89A;
-  box-shadow: 0 0 0 4px rgba(84,184,154,.16);
+.dr-hair-logo {
+  display: block;
+  width: 145px;
+  height: auto;
+  object-fit: contain;
 }
 
 .login-panel {
-  padding: 34px;
-  display: grid;
-  place-items: center;
-  align-content: center;
+  min-height: 100vh;
+  height: 100vh;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(70px, 13vh, 150px) 5vw 24px;
+}
+
+.login-panel-inner {
+  width: 100%;
+  max-width: 520px;
+}
+
+.login-panel h1 {
+  margin: 0 0 28px;
+  color: var(--ink);
+  font-size: clamp(30px, 2.4vw, 42px);
+  line-height: 1;
+  text-align: center;
+  font-weight: 700;
 }
 
 .login-card {
-  width: min(100%, 440px);
-  padding: clamp(26px, 5vw, 42px);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: 0 18px 60px rgba(22,48,46,.08);
+  width: 100%;
+  padding: 28px 34px 34px;
+  border: 1px solid #dfe2e5;
+  border-radius: 5px;
+  background: var(--card);
+  box-shadow: 0 2px 6px rgba(17, 20, 38, .12);
 }
 
-.eyebrow {
-  font-family: Consolas, "Courier New", monospace;
-  color: var(--primary-hover);
-  font-size: 10.5px;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.login-card h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(27px, 4vw, 35px);
-  line-height: 1.15;
-  font-weight: 500;
+.login-card h2 {
+  color: #17191e;
+  font-size: 20px;
+  line-height: 1.2;
+  text-align: center;
+  font-weight: 700;
 }
 
 .form-description {
-  color: var(--muted);
-  margin-top: 10px;
-  margin-bottom: 27px;
-  font-size: 13.5px;
+  color: #8b9198;
+  margin-top: 7px;
+  margin-bottom: 24px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .field {
   display: block;
-  margin-bottom: 17px;
+  margin-bottom: 18px;
 }
 
 .field > span:first-child {
   display: block;
-  color: var(--ink);
-  font-size: 12.5px;
+  color: #17191e;
+  font-size: 12px;
   font-weight: 600;
   margin-bottom: 7px;
 }
 
 .field input {
   width: 100%;
-  min-height: 45px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: var(--ink);
-  background: #FFFEFB;
+  min-height: 46px;
+  border: 1px solid #dfe4e8;
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: #22262e;
+  background: var(--input);
   outline: none;
+  font-size: 12px;
+}
+
+.field input::placeholder {
+  color: #b2b7bc;
 }
 
 .field input:focus {
-  border-color: var(--primary-hover);
-  box-shadow: 0 0 0 3px rgba(44,124,118,.12);
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 2px rgba(217, 180, 97, .16);
 }
 
 .password-control {
@@ -196,72 +190,77 @@ button {
 }
 
 .password-control input {
-  padding-right: 78px;
+  padding-right: 27px;
 }
 
 .show-password {
   position: absolute;
   top: 50%;
-  right: 7px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
   transform: translateY(-50%);
+  display: grid;
+  place-items: center;
   border: none;
-  border-radius: 7px;
-  padding: 6px 7px;
+  border-radius: 4px;
+  padding: 0;
   background: transparent;
-  color: var(--primary);
+  color: #606771;
   cursor: pointer;
-  font-size: 11.5px;
 }
 
 .show-password:hover {
-  background: #EEF4F2;
+  background: #e8ecef;
 }
 
-.password-hint {
-  margin-top: -5px;
-  margin-bottom: 14px;
-  color: var(--muted);
-  font-size: 11.5px;
+.eye-icon {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .form-message {
-  min-height: 20px;
-  margin: 2px 0 10px;
-  font-size: 12.5px;
+  min-height: 0;
+  margin: 4px 0 10px;
+  font-size: 11px;
 }
 
 .form-message.error {
-  padding: 9px 10px;
-  min-height: 0;
-  border: 1px solid #F0CFC5;
-  border-radius: 8px;
+  padding: 5px 6px;
+  border: 1px solid #f0c9c9;
+  border-radius: 4px;
   color: var(--danger);
   background: var(--danger-soft);
 }
 
 .form-message.success {
-  padding: 9px 10px;
-  min-height: 0;
-  border: 1px solid #C8DED7;
-  border-radius: 8px;
+  padding: 5px 6px;
+  border: 1px solid #c9e2d4;
+  border-radius: 4px;
   color: var(--success);
   background: var(--success-soft);
 }
 
 .primary-button {
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   border: none;
-  border-radius: 11px;
-  padding: 11px 14px;
-  background: var(--primary);
-  color: #FFFFFF;
+  border-radius: 4px;
+  padding: 9px 12px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #111426;
   cursor: pointer;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .primary-button:hover:not(:disabled) {
-  background: var(--primary-hover);
+  filter: brightness(1.04);
 }
 
 .primary-button:disabled {
@@ -269,10 +268,15 @@ button {
   cursor: wait;
 }
 
-.login-footer {
-  margin-top: 17px;
+.password-hint {
+  margin: -2px 0 8px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 8px;
+}
+
+.login-footer {
+  color: #161a27;
+  font-size: 9px;
   text-align: center;
 }
 
@@ -281,34 +285,78 @@ button {
 }
 
 @media (max-width: 800px) {
+  body.login-page {
+    overflow: auto;
+  }
+
+  .login-page {
+    min-height: 100vh;
+  }
+
   .login-shell {
+    min-height: 100vh;
+    height: auto;
     grid-template-columns: 1fr;
   }
 
   .login-brand {
-    min-height: auto;
-    padding: 28px 24px;
-    gap: 28px;
+    min-height: 48vh;
+    height: 48vh;
+    padding: 32px 24px 28px;
   }
 
-  .brand-name {
-    font-size: 36px;
+  .brand-content {
+    min-height: 0;
   }
 
-  .brand-description {
-    font-size: 14px;
-    margin-top: 12px;
+  .trichon-logo {
+    width: min(330px, 78vw);
   }
 
-  .privacy-card {
-    padding: 12px 13px;
+  .dr-hair-logo {
+    width: 115px;
   }
 
   .login-panel {
-    padding: 28px 18px 36px;
+    min-height: 52vh;
+    height: auto;
+    padding: 56px 24px 24px;
+  }
+
+  .login-panel-inner {
+    max-width: 520px;
+  }
+
+  .login-panel h1 {
+    font-size: 32px;
   }
 
   .login-card {
-    padding: 27px 22px;
+    padding: 22px 20px 26px;
+  }
+
+  .login-card h2 {
+    font-size: 18px;
+  }
+
+  .form-description,
+  .field > span:first-child,
+  .field input,
+  .form-message,
+  .password-hint {
+    font-size: 11px;
+  }
+
+  .field input {
+    min-height: 42px;
+  }
+
+  .primary-button {
+    min-height: 42px;
+    font-size: 12px;
+  }
+
+  .login-footer {
+    font-size: 8px;
   }
 }

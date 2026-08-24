@@ -3,25 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Biomind</title>
+<title>Trichon AI</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --bg: #F4F2EC;
-  --surface: #FFFFFF;
-  --ink: #16302E;
-  --muted: #5F716E;
-  --primary: #1E5B57;
-  --primary-2: #2C7C76;
-  --accent: #B96B22;
-  --accent-soft: #F6E9D8;
-  --danger: #9A3B23;
-  --danger-soft: #FBEDE9;
-  --border: #E2DED3;
-  --sidebar: #11302D;
-  --sidebar-text: #D6E2DF;
-  --sidebar-muted: #8FB3AD;
+ :root {
+  --bg: #0C0C24;
+  --surface: #15152F;
+  --surface-2: #10102A;
+  --ink: #F2F2F7;
+  --muted: #A5A5B8;
+  --primary: #D9B461;
+  --primary-2: #E5C77D;
+  --accent: #D9B461;
+  --accent-soft: rgba(217, 180, 97, .12);
+  --danger: #F08A8A;
+  --danger-soft: rgba(161, 62, 62, .16);
+  --border: rgba(255,255,255,.10);
+  --sidebar: #0C0C24;
+  --sidebar-text: #EDEDF2;
+  --sidebar-muted: #9999B0;
 }
 
 html, body {
@@ -57,41 +58,46 @@ aside {
 }
 
 .sidebar-top {
-  padding: 24px 18px 15px;
+  padding: 22px 18px 15px;
 }
 
 .brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 9px;
   padding: 0 4px;
 }
 
 .brand .mark {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 27px;
-  font-weight: 600;
-  color: #FBFAF6;
+  display: block;
+  width: 172px;
+  height: auto;
+}
+
+.brand-logo {
+  display: block;
+  width: 172px;
+  height: auto;
 }
 
 .brand .ver {
   font-family: Consolas, "Courier New", monospace;
   font-size: 11px;
-  color: #6FA09A;
+  color: #D9B461;
 }
 
 .tag {
   margin: 8px 4px 0;
   font-size: 12.5px;
-  color: #9DB8B3;
+  color: #9999B0;
 }
 
 .new-chat {
   width: 100%;
   margin-top: 20px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.07);
-  color: #FBFAF6;
+  border: 1px solid rgba(217,180,97,.28);
+  background: rgba(255,255,255,.035);
+  color: #EDEDF2;
   padding: 10px 12px;
   border-radius: 11px;
   cursor: pointer;
@@ -102,7 +108,7 @@ aside {
 }
 
 .new-chat:hover {
-  background: rgba(255,255,255,.12);
+  background: rgba(217,180,97,.10);
 }
 
 .new-chat:disabled {
@@ -116,7 +122,7 @@ aside {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .13em;
-  color: #6FA09A;
+  color: #D9B461;
 }
 
 .chat-list {
@@ -148,11 +154,11 @@ aside {
 }
 
 .chat-item:hover {
-  background: rgba(255,255,255,.07);
+  background: rgba(255,255,255,.055);
 }
 
 .chat-item.active {
-  background: rgba(255,255,255,.12);
+  background: rgba(217,180,97,.10);
 }
 
 .chat-main {
@@ -175,7 +181,7 @@ aside {
 .delete-chat {
   border: none;
   background: transparent;
-  color: #9DB8B3;
+  color: #9999B0;
   width: 26px;
   height: 26px;
   border-radius: 7px;
@@ -192,11 +198,11 @@ aside {
 
 .delete-chat:hover {
   color: #FFFFFF;
-  background: rgba(255,255,255,.12);
+  background: rgba(217,180,97,.10);
 }
 
 .sidebar-footer {
-  border-top: 1px solid rgba(255,255,255,.08);
+  border-top: 1px solid rgba(255,255,255,.09);
   padding: 14px 18px 18px;
 }
 
@@ -213,8 +219,8 @@ aside {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #54B89A;
-  box-shadow: 0 0 0 3px rgba(84,184,154,.18);
+  background: #D9B461;
+  box-shadow: 0 0 0 3px rgba(217,180,97,.16);
 }
 
 .user-box {
@@ -229,7 +235,7 @@ aside {
 }
 
 .user-name {
-  color: #FBFAF6;
+  color: #EDEDF2;
   font-size: 12.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -244,7 +250,7 @@ aside {
 .logout {
   border: 1px solid rgba(255,255,255,.13);
   background: transparent;
-  color: #D6E2DF;
+  color: #D6D6E2;
   border-radius: 8px;
   padding: 7px 9px;
   cursor: pointer;
@@ -252,7 +258,7 @@ aside {
 }
 
 .logout:hover {
-  background: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.055);
 }
 
 /* ------------------------------------------------------------------ */
@@ -281,8 +287,7 @@ header {
 }
 
 header h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 20px;
   white-space: nowrap;
   overflow: hidden;
@@ -295,8 +300,8 @@ header h1 {
   align-items: center;
   gap: 8px;
   background: var(--accent-soft);
-  color: #8A4D14;
-  border: 1px solid #ECD7BC;
+  color: #E6CA88;
+  border: 1px solid rgba(217,180,97,.24);
   padding: 5px 11px;
   border-radius: 100px;
   font-size: 12px;
@@ -336,7 +341,7 @@ header h1 {
 
 .user .bubble {
   background: var(--primary);
-  color: #F4FAF8;
+  color: #0C0C24;
   padding: 11px 15px;
   border-radius: 16px 16px 4px 16px;
   font-size: 14.5px;
@@ -353,6 +358,7 @@ header h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px 16px 16px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.14);
   padding: 18px 20px 16px;
 }
 
@@ -361,7 +367,7 @@ header h1 {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .13em;
-  color: var(--primary-2);
+  color: var(--primary);
   margin-bottom: 12px;
 }
 
@@ -431,7 +437,7 @@ header h1 {
 .step p {
   margin-bottom: 5px;
   font-size: 14px;
-  color: #243F3C;
+  color: #D7D7E2;
 }
 
 .step ul {
@@ -445,7 +451,7 @@ header h1 {
   position: relative;
   padding-left: 15px;
   font-size: 14px;
-  color: #243F3C;
+  color: #D7D7E2;
 }
 
 .step li::before {
@@ -482,7 +488,7 @@ header h1 {
 
 .src {
   font-size: 12.5px;
-  color: #33514E;
+  color: #C9C9D8;
   padding: 3px 0;
   overflow-wrap: anywhere;
 }
@@ -501,7 +507,7 @@ header h1 {
 .disclaimer-note {
   margin-top: 14px;
   padding: 11px 13px;
-  background: #F1F4F3;
+  background: #10102A;
   border: 1px solid var(--border);
   border-radius: 9px;
   font-size: 11.5px;
@@ -511,8 +517,8 @@ header h1 {
 
 .warn {
   background: var(--accent-soft);
-  border: 1px solid #ECD7BC;
-  color: #8A4D14;
+  border: 1px solid rgba(217,180,97,.24);
+  color: #E6CA88;
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 13.5px;
@@ -520,7 +526,7 @@ header h1 {
 
 .err {
   background: var(--danger-soft);
-  border: 1px solid #F0CFC5;
+  border: 1px solid rgba(240,138,138,.25);
   color: var(--danger);
   padding: 12px 14px;
   border-radius: 10px;
@@ -544,7 +550,7 @@ header h1 {
 }
 
 .chip:hover {
-  border-color: var(--primary-2);
+  border-color: var(--primary);
   color: var(--primary);
 }
 
@@ -638,7 +644,7 @@ footer {
 }
 
 .send:disabled {
-  background: #B9C6C3;
+  background: #45455E;
   cursor: not-allowed;
 }
 
@@ -666,6 +672,20 @@ footer {
 
 .app-loading.hidden {
   display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbars e seleção                                                */
+/* ------------------------------------------------------------------ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #343451 transparent;
+}
+
+::selection {
+  background: rgba(217,180,97,.30);
+  color: #FFFFFF;
 }
 
 /* ------------------------------------------------------------------ */
@@ -706,18 +726,64 @@ footer {
     max-width: 90%;
   }
 }
+
+/* Ajustes visuais — separação da sidebar e espaçamento do título */
+aside {
+  border-right: 1px solid rgba(217, 180, 97, 0.22);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+header {
+  padding-left: 34px;
+  padding-right: 34px;
+}
+
+.header-copy {
+  padding-left: 6px;
+}
+
+#page-title {
+  margin: 0;
+  padding: 0 4px;
+  letter-spacing: -0.015em;
+}
+
+@media (max-width: 760px) {
+  aside {
+    border-right: none;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  header {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .header-copy {
+    padding-left: 0;
+  }
+
+  #page-title {
+    padding-left: 0;
+  }
+}
+
 </style>
 </head>
 
 <body>
 <div class="app-loading" id="app-loading">
-  Verificando acesso ao Biomind…
+  Verificando acesso ao Trichon AI…
 </div>
 
 <aside id="sidebar">
   <div class="sidebar-top">
     <div class="brand">
-      <span class="mark">Biomind</span>
+      <img
+        class="brand-logo"
+        src="/static/trichon-ai-lockup.svg"
+        alt="Trichon AI"
+      >
       <span class="ver">local</span>
     </div>
 
@@ -1125,7 +1191,7 @@ function addBotMessage(innerHtml, createdAt = null) {
 
   element.innerHTML =
     '<div class="card">' +
-    '<div class="bot-name">Biomind</div>' +
+    '<div class="bot-name">Trichon AI</div>' +
     innerHtml +
     (createdAt
       ? `<div class="message-time">${esc(formatDate(createdAt))}</div>`
@@ -1142,7 +1208,7 @@ function renderWelcome() {
   thread.innerHTML = `
     <div class="bot">
       <div class="card">
-        <div class="bot-name">Biomind</div>
+        <div class="bot-name">Trichon AI</div>
         <div class="plain">
           <p>
             Descreva o caso sem dados que identifiquem o paciente.
