@@ -1219,30 +1219,7 @@ function renderWelcome() {
       </div>
     </div>
 
-    <div class="examples" id="examples">
-      <button class="chip" type="button">
-        Mulher de 29 anos com rarefação no topo e desejo de engravidar
-      </button>
-
-      <button class="chip" type="button">
-        Homem de 32 anos com perda nas têmporas e no vértice
-      </button>
-
-      <button class="chip" type="button">
-        Paciente com oleosidade excessiva e alopecia inicial
-      </button>
-    </div>
   `;
-
-  const examples = document.getElementById("examples");
-
-  examples?.querySelectorAll(".chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      input.value = chip.textContent.trim();
-      resizeInput();
-      input.focus();
-    });
-  });
 
   scrollToBottom();
 }
