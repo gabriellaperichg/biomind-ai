@@ -8,24 +8,21 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
  :root {
-  --bg: #FFFFFF;
-  --surface: #FFFFFF;
-  --surface-2: #F7F7F7;
-  --ink: #17181D;
-  --muted: #777980;
-  --primary: #D9AE4D;
+  --bg: #0B0C20;
+  --surface: #15162C;
+  --surface-2: #101124;
+  --ink: #F2F1EC;
+  --muted: #9698AA;
+  --primary: #D9B461;
   --primary-2: #E7CB83;
-  --accent: #D9AE4D;
-  --accent-soft: #FAF8F2;
-  /* Decorações da conversa em neutros claros; dourado fica reservado aos acentos de ação. */
-  --chat-light: #25262B;
-  --chat-light-soft: rgba(0,0,0,.06);
-  --danger: #B94A4A;
-  --danger-soft: #FFF2F2;
-  --border: #E1E2E4;
-  --sidebar: #FFFFFF;
-  --sidebar-text: #33343A;
-  --sidebar-muted: #929398;
+  --accent: #D9B461;
+  --accent-soft: rgba(217, 180, 97, .12);
+  --danger: #F08A8A;
+  --danger-soft: rgba(161, 62, 62, .16);
+  --border: rgba(255,255,255,.075);
+  --sidebar: #0A0B1E;
+  --sidebar-text: #EDEDF1;
+  --sidebar-muted: #8E91A5;
 }
 
 html, body {
@@ -86,21 +83,21 @@ aside {
 .brand .ver {
   font-family: Consolas, "Courier New", monospace;
   font-size: 11px;
-  color: #B58B35;
+  color: #D9B461;
 }
 
 .tag {
   margin: 8px 4px 0;
   font-size: 12.5px;
-  color: #777980;
+  color: #9999B0;
 }
 
 .new-chat {
   width: 100%;
   margin-top: 20px;
-  border: 1px solid #D8D9DC;
-  background: #FFFFFF;
-  color: #27282D;
+  border: 1px solid rgba(217,180,97,.28);
+  background: rgba(255,255,255,.035);
+  color: #EDEDF2;
   padding: 9px 12px;
   border-radius: 9px;
   cursor: pointer;
@@ -111,7 +108,7 @@ aside {
 }
 
 .new-chat:hover {
-  background: #FBF6E9;
+  background: rgba(217,180,97,.10);
 }
 
 .new-chat:disabled {
@@ -125,7 +122,7 @@ aside {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .13em;
-  color: #B58B35;
+  color: #D9B461;
 }
 
 .chat-list {
@@ -157,22 +154,18 @@ aside {
 }
 
 .chat-item:hover {
-  background: #F5F5F5;
+  background: rgba(255,255,255,.055);
 }
 
 .chat-item.active {
-  background: #FBF6E9;
+  background: rgba(217,180,97,.10);
 }
 
 .chat-main {
   min-width: 0;
-  margin: 0 6px;
 }
 
 .chat-title {
-  display: block;
-  width: 100%;
-  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -188,7 +181,7 @@ aside {
 .delete-chat {
   border: none;
   background: transparent;
-  color: #777980;
+  color: #9999B0;
   width: 26px;
   height: 26px;
   border-radius: 7px;
@@ -205,11 +198,11 @@ aside {
 
 .delete-chat:hover {
   color: #FFFFFF;
-  background: #FBF6E9;
+  background: rgba(217,180,97,.10);
 }
 
 .sidebar-footer {
-  border-top: 1px solid #E3E4E6;
+  border-top: 1px solid rgba(255,255,255,.09);
   padding: 14px 18px 18px;
 }
 
@@ -226,7 +219,7 @@ aside {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #D9AE4D;
+  background: #D9B461;
   box-shadow: 0 0 0 3px rgba(217,180,97,.16);
 }
 
@@ -242,7 +235,7 @@ aside {
 }
 
 .user-name {
-  color: #292A2F;
+  color: #EDEDF2;
   font-size: 12.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -255,9 +248,9 @@ aside {
 }
 
 .logout {
-  border: 1px solid #DEDFE2;
+  border: 1px solid rgba(255,255,255,.13);
   background: transparent;
-  color: #55565B;
+  color: #D6D6E2;
   border-radius: 8px;
   padding: 7px 9px;
   cursor: pointer;
@@ -265,7 +258,7 @@ aside {
 }
 
 .logout:hover {
-  background: #F5F5F5;
+  background: rgba(255,255,255,.055);
 }
 
 /* ------------------------------------------------------------------ */
@@ -282,7 +275,7 @@ main {
 
 header {
   padding: 16px 28px 14px;
-  border-bottom: 1px solid #ECECEE;
+  border-bottom: 1px solid var(--border);
   display: flex;
   gap: 16px;
   justify-content: space-between;
@@ -306,9 +299,9 @@ header h1 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #FAF8F2;
-  color: #7C6738;
-  border: 1px solid #E8DDC3;
+  background: var(--accent-soft);
+  color: #E6CA88;
+  border: 1px solid rgba(217,180,97,.24);
   padding: 5px 11px;
   border-radius: 100px;
   font-size: 12px;
@@ -318,8 +311,8 @@ header h1 {
 .mobile-menu {
   display: none;
   border: 1px solid var(--border);
-  background: #FFFFFF;
-  color: #33343A;
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 9px;
   width: 38px;
   height: 38px;
@@ -347,9 +340,8 @@ header h1 {
 }
 
 .user .bubble {
-  background: #F5F5F4;
-  color: #25262B;
-  border: 1px solid #E5E5E5;
+  background: linear-gradient(135deg, var(--primary-2), var(--primary));
+  color: #101124;
   padding: 11px 15px;
   border-radius: 16px 16px 4px 16px;
   font-size: 14.5px;
@@ -366,7 +358,7 @@ header h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 5px 14px 14px 14px;
-  box-shadow: 0 10px 28px rgba(25,27,34,.055);
+  box-shadow: 0 14px 34px rgba(0,0,0,.18);
   padding: 18px 21px 17px;
 }
 
@@ -375,7 +367,7 @@ header h1 {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .13em;
-  color: #1E1F24;
+  color: var(--primary);
   margin-bottom: 12px;
 }
 
@@ -400,7 +392,7 @@ header h1 {
   top: 7px;
   bottom: 9px;
   width: 2px;
-  background: #E2E3E5;
+  background: var(--border);
 }
 
 .step {
@@ -421,31 +413,31 @@ header h1 {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #C5C6C9;
-  border: 2.5px solid #FFFFFF;
-  box-shadow: 0 0 0 1.5px #C6C7CA;
+  background: var(--primary);
+  border: 2.5px solid var(--surface);
+  box-shadow: 0 0 0 1.5px var(--primary);
 }
 
 .step.alert::before {
-  background: #C5C6C9;
-  box-shadow: 0 0 0 1.5px #C6C7CA;
+  background: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent);
 }
 
 .step-title {
   font-size: 12.5px;
   font-weight: 600;
-  color: #1E1F24;
+  color: var(--primary);
   margin-bottom: 6px;
 }
 
 .step.alert .step-title {
-  color: #1E1F24;
+  color: var(--accent);
 }
 
 .step p {
   margin-bottom: 5px;
   font-size: 14px;
-  color: #4C4D52;
+  color: #D7D7E2;
 }
 
 .step ul {
@@ -459,7 +451,7 @@ header h1 {
   position: relative;
   padding-left: 15px;
   font-size: 14px;
-  color: #4C4D52;
+  color: #D7D7E2;
 }
 
 .step li::before {
@@ -470,7 +462,7 @@ header h1 {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #C5C6C9;
+  background: var(--primary-2);
 }
 
 .plain p {
@@ -481,7 +473,7 @@ header h1 {
 .sources {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid #E6E7E9;
+  border-top: 1px solid var(--border);
 }
 
 .sources h4 {
@@ -496,13 +488,13 @@ header h1 {
 
 .src {
   font-size: 12.5px;
-  color: #66676C;
+  color: #C9C9D8;
   padding: 3px 0;
   overflow-wrap: anywhere;
 }
 
 .src b {
-  color: #1E1F24;
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -515,7 +507,7 @@ header h1 {
 .disclaimer-note {
   margin-top: 14px;
   padding: 11px 13px;
-  background: #F7F7F7;
+  background: #10102A;
   border: 1px solid var(--border);
   border-radius: 9px;
   font-size: 11.5px;
@@ -524,9 +516,9 @@ header h1 {
 }
 
 .warn {
-  background: #FAF8F2;
-  border: 1px solid #E8DDC3;
-  color: #7C6738;
+  background: var(--accent-soft);
+  border: 1px solid rgba(217,180,97,.24);
+  color: #E6CA88;
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 13.5px;
@@ -534,8 +526,8 @@ header h1 {
 
 .err {
   background: var(--danger-soft);
-  border: 1px solid #EFCECE;
-  color: #A94545;
+  border: 1px solid rgba(240,138,138,.25);
+  color: var(--danger);
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 13.5px;
@@ -558,8 +550,8 @@ header h1 {
 }
 
 .chip:hover {
-  border-color: #1E1F24;
-  color: #1E1F24;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .typing {
@@ -579,7 +571,7 @@ header h1 {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #C5C6C9;
+  background: var(--primary-2);
   opacity: .4;
   animation: blink 1.1s infinite;
 }
@@ -618,7 +610,7 @@ footer {
 }
 
 .composer:focus-within {
-  border-color: #1E1F24;
+  border-color: var(--primary-2);
 }
 
 .composer textarea {
@@ -648,11 +640,11 @@ footer {
 }
 
 .send:hover:not(:disabled) {
-  background: #C5C6C9;
+  background: var(--primary-2);
 }
 
 .send:disabled {
-  background: #C8C9CC;
+  background: #45455E;
   cursor: not-allowed;
 }
 
@@ -674,8 +666,8 @@ footer {
   z-index: 100;
   display: grid;
   place-items: center;
-  background: #FFFFFF;
-  color: #85868B;
+  background: var(--bg);
+  color: var(--muted);
 }
 
 .app-loading.hidden {
@@ -688,12 +680,12 @@ footer {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #CFD0D3 transparent;
+  scrollbar-color: #343451 transparent;
 }
 
 ::selection {
-  background: rgba(217,180,97,.25);
-  color: #202126;
+  background: rgba(217,180,97,.30);
+  color: #FFFFFF;
 }
 
 /* ------------------------------------------------------------------ */
@@ -737,8 +729,8 @@ footer {
 
 /* Ajustes visuais — separação da sidebar e espaçamento do título */
 aside {
-  border-right: 1px solid #DEDFE2;
-  box-shadow: 4px 0 18px rgba(25,27,34,.035);
+  border-right: 1px solid rgba(217, 180, 97, 0.22);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
 }
 
 header {
@@ -759,7 +751,7 @@ header {
 @media (max-width: 760px) {
   aside {
     border-right: none;
-    box-shadow: 10px 0 35px rgba(0,0,0,.10);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.18);
   }
 
   header {
@@ -789,7 +781,7 @@ header {
     <div class="brand">
       <img
         class="brand-logo"
-        src="/static/trichon-ai-lockup.png"
+        src="/static/trichon-ai-lockup.svg"
         alt="Trichon AI"
       >
       <span class="ver">local</span>
@@ -1116,29 +1108,19 @@ function normalizeSource(source, index) {
 }
 
 function renderSources(sources) {
-  if (!Array.isArray(sources) || !sources.length) {
-    return "";
-  }
+  // As fontes continuam sendo recebidas e armazenadas pelo backend,
+  // mas não são exibidas na interface da conversa.
+  return "";
+}
 
-  const items = sources.map((rawSource, index) => {
-    const source = normalizeSource(rawSource, index);
-    const sim = similarityText(source.similarity);
-
-    return (
-      '<div class="src">' +
-      `<b>[${esc(source.number)}]</b> ` +
-      `${esc(source.name)} — pág. ${esc(source.pages)}` +
-      (sim ? ` <span class="sim">sim. ${esc(sim)}</span>` : "") +
-      "</div>"
-    );
-  }).join("");
-
-  return (
-    '<div class="sources">' +
-    "<h4>Fontes consultadas</h4>" +
-    items +
-    "</div>"
-  );
+function removeSourceCitations(text) {
+  // Remove referências numéricas do tipo [1], [2], [3] que o modelo
+  // possa inserir na resposta. O conteúdo das fontes continua preservado
+  // no backend para rastreabilidade e uso futuro.
+  return String(text ?? "")
+    .replace(/\s*\[(?:\d+(?:\s*[-,]\s*\d+)*)\]/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/ +([,.;:!?])/g, "$1");
 }
 
 function buildAssistantHtml(message) {
@@ -1161,7 +1143,8 @@ function buildAssistantHtml(message) {
     )}</div>`;
   }
 
-  let html = renderAnswer(content);
+  const displayContent = removeSourceCitations(content);
+  let html = renderAnswer(displayContent);
   html += renderSources(message?.sources || []);
 
   const disclaimer = message?.disclaimer;
@@ -1226,7 +1209,21 @@ function renderWelcome() {
         </div>
       </div>
     </div>
-`;
+
+    <div class="examples" id="examples">
+      <button class="chip" type="button">
+        Mulher de 29 anos com rarefação no topo e desejo de engravidar
+      </button>
+
+      <button class="chip" type="button">
+        Homem de 32 anos com perda nas têmporas e no vértice
+      </button>
+
+      <button class="chip" type="button">
+        Paciente com oleosidade excessiva e alopecia inicial
+      </button>
+    </div>
+  `;
 
   const examples = document.getElementById("examples");
 
