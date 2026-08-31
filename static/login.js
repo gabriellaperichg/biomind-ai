@@ -277,7 +277,7 @@ document
       const showing = input.type === "text";
 
       input.type = showing ? "password" : "text";
-      button.textContent = showing ? "Mostrar" : "Ocultar";
+      button.classList.toggle("is-visible", !showing);
       button.setAttribute(
         "aria-label",
         showing ? "Mostrar senha" : "Ocultar senha"
