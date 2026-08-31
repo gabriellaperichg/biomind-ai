@@ -14,29 +14,34 @@
     <section class="login-brand" aria-labelledby="brand-title">
       <div class="brand-content">
         <img
-          class="trichon-logo"
-          src="/static/trichon-ai-lockup.svg"
-          alt="Trichon AI"
+          class="dr-hair-logo"
+          src="/static/dr-hair-logo.png"
+          alt="Dr. Hair"
           id="brand-title"
         >
       </div>
 
-      <img
-        class="dr-hair-logo"
-        src="/static/dr-hair-logo.png"
-        alt="Dr. Hair"
-      >
+      <div class="brand-caption">
+        <span>TECNOLOGIA PARA</span>
+        <strong>DECISÕES MAIS PRECISAS</strong>
+      </div>
     </section>
 
     <section class="login-panel" aria-label="Acesso ao Trichon AI">
       <div class="login-panel-inner">
-        <h1>Log in</h1>
+        <div class="login-logo-wrap">
+          <img
+            class="login-logo"
+            src="/static/trichon-ai-lockup.png"
+            alt="Trichon AI"
+          >
+        </div>
+        <h1>Você voltou!</h1>
 
         <div class="login-card">
           <div id="login-view">
-            <h2>SDR Desk</h2>
-            <p class="form-description">
-              Insira suas credenciais para acessar o sistema.
+            <p class="form-description form-description-lead">
+              Faça login em sua conta para continuar.
             </p>
 
             <form id="login-form" novalidate>
@@ -82,6 +87,7 @@
                 role="alert"
                 aria-live="polite"
               ></div>
+
 
               <button class="primary-button" id="login-button" type="submit">
                 <span class="button-label">Entrar</span>
@@ -183,12 +189,13 @@
               </button>
             </form>
           </div>
+
+          <div class="login-card-footer">
+            <p>Proudly made by Dr. Hair Franchising © 2026</p>
+            <span>v1.0.0</span>
+          </div>
         </div>
       </div>
-
-      <p class="login-footer">
-        Proudly made by Dr. Hair @ 2026
-      </p>
     </section>
   </main>
 </body>
