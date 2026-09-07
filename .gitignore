@@ -28,3 +28,17 @@ debug_retrieval_report.json
 debug_contexto_recuperado.txt
 biomind_db_backup*/
 chunks_backup*.jsonl
+
+
+# Banco de dados de produção
+data/biomind_app.db
+
+# Banco/índice do RAG
+biomind_db/
+
+# Ambientes virtuais
+.venv/
+
+# Arquivos temporários
+*.log
+__pycache__/
