@@ -1115,11 +1115,6 @@ function normalizeSource(source, index) {
   };
 }
 
-function renderSources(sources) {
-  if (!Array.isArray(sources) || !sources.length) {
-    return "";
-  }
-
   const items = sources.map((rawSource, index) => {
     const source = normalizeSource(rawSource, index);
     const sim = similarityText(source.similarity);
@@ -1139,7 +1134,6 @@ function renderSources(sources) {
     items +
     "</div>"
   );
-}
 
 function buildAssistantHtml(message) {
   const status = message?.status || "ok";
@@ -1162,7 +1156,6 @@ function buildAssistantHtml(message) {
   }
 
   let html = renderAnswer(content);
-  html += renderSources(message?.sources || []);
 
   const disclaimer = message?.disclaimer;
 

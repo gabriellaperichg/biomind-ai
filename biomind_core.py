@@ -1097,8 +1097,6 @@ def responder(pergunta: str) -> dict[str, Any]:
         "Não prescreva medicamentos, doses ou tratamentos. "
         "Não transfira diagnósticos ou condutas de pacientes descritos nos documentos. "
 
-        "Associe cada afirmação clínica aos números [1], [2] e assim por diante. "
-
         "Quando a base não permitir uma orientação, indique exatamente qual "
         "informação ou documento está faltando."
     )
