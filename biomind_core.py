@@ -43,6 +43,10 @@ from retrieval_quality import (
     enrich_chunk_metadata,
     score_candidate,
 )
+from rag.query import build_query_variants as build_query_variants_v4
+from retrieval.hybrid import hybrid_search
+from retrieval.reranker import rerank as rerank_candidates_v4
+from rag.context import fetch_parent_context
 
 # ---------------------------------------------------------------------------
 # Configuração
@@ -150,8 +154,8 @@ REGRAS DE FONTES E SEGURANÇA
 
 - Use somente informações contidas nos TRECHOS DA BASE fornecidos nesta solicitação.
 - Não use conhecimento externo, memória própria ou suposições clínicas.
-- Cite cada afirmação clínica com [1], [2] e assim por diante.
-- Nunca invente uma citação.
+- Não inclua números de referência, citações no formato [1], [2] ou nomes de documentos na resposta exibida à profissional.
+- A sustentação das afirmações deve vir exclusivamente dos TRECHOS DA BASE, mas as referências devem permanecer internas ao sistema.
 - Quando a base não sustentar uma conclusão, declare claramente essa limitação.
 - Não dê diagnóstico definitivo.
 - Não prescreva medicamentos, suplementos, doses, pomadas ou procedimentos.
@@ -382,6 +386,40 @@ def validar_modelo_indice(col) -> None:
 # ---------------------------------------------------------------------------
 
 def _janela(col, meta_central: dict[str, Any]) -> list[dict[str, Any]]:
+    """Recupera o parent completo quando o índice V4 estiver disponível.
+
+    Mantém fallback para o índice legado baseado em doc_pos/window.
+    """
+    parent_id = str(meta_central.get("parent_id") or "").strip()
+    if parent_id:
+        try:
+            resposta = col.get(
+                where={"parent_id": parent_id},
+                include=["documents", "metadatas"],
+            )
+            registros: list[dict[str, Any]] = []
+            for record_id, document_text, metadata in zip(
+                resposta.get("ids") or [],
+                resposta.get("documents") or [],
+                resposta.get("metadatas") or [],
+            ):
+                if document_text is None or metadata is None:
+                    continue
+                registros.append(
+                    {
+                        "id": str(record_id),
+                        "text": str(document_text),
+                        "metadata": metadata,
+                    }
+                )
+            registros.sort(
+                key=lambda item: int(item["metadata"].get("child_index", item["metadata"].get("doc_pos", 0)))
+            )
+            if registros:
+                return registros
+        except Exception:
+            logger.exception("Falha ao recuperar parent_id=%s; usando janela legada", parent_id)
+
     documento = str(meta_central["document_id"])
     posicao = int(meta_central["doc_pos"])
     inicio = max(0, posicao - WINDOW)
@@ -430,9 +468,8 @@ def _janela(col, meta_central: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
 
-    registros.sort(key=lambda item: int(item["metadata"]["doc_pos"]))
+    registros.sort(key=lambda item: int(item["metadata"].get("doc_pos", 0)))
     return registros
-
 
 def _mesclar_overlap(textos: list[str]) -> str:
     if not textos:
@@ -474,76 +511,66 @@ def _formatar_paginas(metadatas: list[dict[str, Any]]) -> str:
 
 
 def _candidate_pool(pergunta: str, col) -> list[dict[str, Any]]:
-    variants = build_query_variants(
+    """Recupera candidatos usando multi-query + Hybrid Search.
+
+    Dense + BM25 são combinados primeiro. Depois as regras clínicas atuais
+    calculam o score de finalidade; o reranker neural é opcional e, se o
+    modelo não estiver disponível localmente, o ranking híbrido permanece.
+    """
+    variants = build_query_variants_v4(
         pergunta,
         max_variants=MAX_QUERY_VARIANTS,
     )
+
     quantidade = min(
         col.count(),
         max(TOP_K * CANDIDATE_MULTIPLIER, TOP_K + 12),
     )
 
-    query_result = col.query(
-        query_embeddings=embed_queries(variants),
-        n_results=quantidade,
-        include=["documents", "metadatas", "distances"],
+    hybrid = hybrid_search(
+        variants,
+        col,
+        k_dense=quantidade,
+        k_bm25=quantidade,
     )
 
-    candidates: dict[str, dict[str, Any]] = {}
-
-    for variant_index, variant in enumerate(variants):
-        ids = query_result.get("ids", [[]])[variant_index]
-        documents = query_result.get("documents", [[]])[variant_index]
-        metadatas = query_result.get("metadatas", [[]])[variant_index]
-        distances = query_result.get("distances", [[]])[variant_index]
-
-        for record_id, text, metadata, distance in zip(
-            ids,
-            documents,
-            metadatas,
-            distances,
-        ):
-            if metadata is None or text is None or distance is None:
-                continue
-
-            semantic_similarity = 1.0 - float(distance)
-            if semantic_similarity < PISO_RELEVANCIA:
-                continue
-
-            record_key = str(record_id)
-            current = candidates.get(record_key)
-            if current is None or semantic_similarity > current["semantic_similarity"]:
-                candidates[record_key] = {
-                    "id": record_key,
-                    "text": str(text),
-                    "metadata": metadata,
-                    "semantic_similarity": semantic_similarity,
-                    "matched_variant": variant,
-                }
-
     scored: list[dict[str, Any]] = []
-    for candidate in candidates.values():
-        metadata = candidate["metadata"]
+    for candidate in hybrid:
+        metadata = candidate.get("metadata") or {}
         source = str(metadata.get("source") or "Fonte não identificada")
         quality = score_candidate(
             pergunta,
-            semantic_similarity=candidate["semantic_similarity"],
+            semantic_similarity=float(candidate.get("semantic_similarity", 0.0)),
             source=source,
-            text=candidate["text"],
+            text=str(candidate.get("text") or ""),
             metadata=metadata,
         )
         candidate["quality"] = quality
+        candidate["matched_variant"] = candidate.get("matched_query", variants[0] if variants else pergunta)
         scored.append(candidate)
+
+    # Reranker verdadeiro somente em um conjunto já reduzido pelo filtro semântico.
+    # O fallback interno mantém o sistema funcional em modo offline se o modelo
+    # de reranking ainda não estiver em cache.
+    if scored:
+        reranked = rerank_candidates_v4(
+            pergunta,
+            scored,
+            top_n=min(len(scored), max(TOP_K * 4, 12)),
+        )
+        if reranked:
+            scored = reranked
 
     scored.sort(
         key=lambda item: (
+            float(item.get("rerank_score", 0.0)),
             item["quality"].adjusted_score,
-            item["semantic_similarity"],
+            float(item.get("hybrid_score", 0.0)),
+            float(item.get("semantic_similarity", 0.0)),
         ),
         reverse=True,
     )
     return scored
-
 
 def _recuperar_com_debug(pergunta: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     pergunta = pergunta.strip()
@@ -696,7 +723,7 @@ def debug_recuperacao(pergunta: str) -> dict[str, Any]:
     selected, candidates = _recuperar_com_debug(pergunta)
     return {
         "question": pergunta,
-        "query_variants": build_query_variants(
+        "query_variants": build_query_variants_v4(
             pergunta,
             max_variants=MAX_QUERY_VARIANTS,
         ),

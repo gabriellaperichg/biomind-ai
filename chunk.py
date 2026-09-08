@@ -597,7 +597,7 @@ def auditar_chunks(chunks: list[dict[str, object]]) -> None:
     print(f"Com divisão forçada: {forçados}")
 
 
-def main() -> None:
+def _legacy_main() -> None:
     pdfs = sorted(glob.glob(os.path.join(PDF_DIR, "*.pdf")))
     if not pdfs:
         print(f"Nenhum PDF em ./{PDF_DIR}/")
@@ -692,6 +692,22 @@ def main() -> None:
                 f"{previa[:400]}"
                 + ("…" if len(previa) > 400 else "")
             )
+
+
+def main() -> None:
+    """Ingestão V4: PDF + DOCX com estrutura e parent/child."""
+    from ingestion.chunker import ingest_directory
+
+    directory = Path(os.getenv("BIOMIND_DOCUMENTS_DIR", PDF_DIR))
+    output = Path(os.getenv("BIOMIND_CHUNKS_FILE", OUT_FILE))
+    if not directory.exists():
+        print(f"Nenhuma pasta de documentos encontrada: {directory}")
+        return
+
+    chunks = ingest_directory(directory, output)
+    print(f"\n{len(chunks)} chunks V4 gerados -> {output}")
+    print("Tipos:", sorted({str(c.get("document_type")) for c in chunks}))
+    print("Arquitetura: document-aware + parent/child + metadata separada do embedding.")
 
 
 if __name__ == "__main__":
