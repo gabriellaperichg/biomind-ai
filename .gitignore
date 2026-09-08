@@ -11,6 +11,7 @@ pdfs/
 data/*.db
 data/*.db-*
 placeholder.db
+.data
 
 # Configurações locais e segredos
 .env
