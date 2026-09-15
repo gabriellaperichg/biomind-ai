@@ -1091,50 +1091,6 @@ function renderAnswer(text) {
   return html;
 }
 
-function normalizeSource(source, index) {
-  return {
-    number:
-      source?.source_number ??
-      source?.n ??
-      index + 1,
-
-    name:
-      source?.source_name ??
-      source?.source ??
-      "Fonte não identificada",
-
-    pages:
-      source?.pages ??
-      source?.page ??
-      "não informada",
-
-    similarity:
-      source?.similarity ??
-      source?.sim ??
-      null,
-  };
-}
-
-  const items = sources.map((rawSource, index) => {
-    const source = normalizeSource(rawSource, index);
-    const sim = similarityText(source.similarity);
-
-    return (
-      '<div class="src">' +
-      `<b>[${esc(source.number)}]</b> ` +
-      `${esc(source.name)} — pág. ${esc(source.pages)}` +
-      (sim ? ` <span class="sim">sim. ${esc(sim)}</span>` : "") +
-      "</div>"
-    );
-  }).join("");
-
-  return (
-    '<div class="sources">' +
-    "<h4>Fontes consultadas</h4>" +
-    items +
-    "</div>"
-  );
-
 function buildAssistantHtml(message) {
   const status = message?.status || "ok";
   const content =
@@ -1442,7 +1398,6 @@ async function ask(text) {
         status: data.status,
         content: data.answer || data.message,
         disclaimer: data.disclaimer,
-        sources: data.sources,
       })
     );
 
